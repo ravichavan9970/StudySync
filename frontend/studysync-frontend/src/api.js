@@ -489,24 +489,36 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
 
   // 3. PROFILE
   if (cleanPath === '/users/me') {
+    const em = (activeUser?.email || '').toLowerCase().trim();
+    if (em && usersMap[em]) {
+      activeUser = { ...activeUser, ...usersMap[em] };
+      if (usersMap[em].profilePictureUrl) {
+        activeUser.profilePictureUrl = usersMap[em].profilePictureUrl;
+      }
+    }
     activeUser.profilePictureUrl = resolveImageUrl(activeUser.profilePictureUrl || '');
     return activeUser;
   }
-  
+
   if (cleanPath === '/profile' && method === 'PUT') {
-    Object.assign(activeUser, body);
-    activeUser.profilePictureUrl = resolveImageUrl(activeUser.profilePictureUrl || '');
-    setStored(STORAGE_KEYS.USER, activeUser);
-    if (activeUser.email) {
-      const em = activeUser.email.toLowerCase();
-      usersMap[em] = { ...(usersMap[em] || {}), ...activeUser };
+    const em = (body.email || activeUser.email || '').toLowerCase().trim();
+    const cleanPic = resolveImageUrl(body.profilePictureUrl !== undefined ? body.profilePictureUrl : (activeUser.profilePictureUrl || ''));
+    const updated = {
+      ...activeUser,
+      ...(usersMap[em] || {}),
+      ...body,
+      profilePictureUrl: cleanPic,
+    };
+    setStored(STORAGE_KEYS.USER, updated);
+    if (em) {
+      usersMap[em] = updated;
       setStored(STORAGE_KEYS.USERS_MAP, usersMap);
       CloudSync.syncUserData(em);
     }
     try {
-      if (activeUser.name) localStorage.setItem('studysync-user-name', activeUser.name);
+      if (updated.name) localStorage.setItem('studysync-user-name', updated.name);
     } catch {}
-    return activeUser;
+    return updated;
   }
 
   // 4. SUBJECTS (Isolated per user)

@@ -21,7 +21,7 @@ export default function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
     if (!imgObj || !canvasRef.current) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const size = 280;
+    const size = 260;
     canvas.width = size;
     canvas.height = size;
 
@@ -45,16 +45,16 @@ export default function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
 
     // Circular overlay mask
     ctx.save();
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.55)';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
     ctx.beginPath();
     ctx.rect(0, 0, size, size);
-    ctx.arc(size / 2, size / 2, size / 2 - 15, 0, Math.PI * 2, true);
+    ctx.arc(size / 2, size / 2, size / 2 - 12, 0, Math.PI * 2, true);
     ctx.fill();
 
     ctx.strokeStyle = '#6366f1';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(size / 2, size / 2, size / 2 - 15, 0, Math.PI * 2);
+    ctx.arc(size / 2, size / 2, size / 2 - 12, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
   }, [imgObj, zoom, offset]);
@@ -71,9 +71,23 @@ export default function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
 
   const handleMouseUp = () => setIsDragging(false);
 
+  // Mobile Touch Support
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX - offset.x, y: e.touches[0].clientY - offset.y });
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    setOffset({ x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y });
+  };
+
   const applyCrop = () => {
     if (!imgObj) return;
-    const cropSize = 240;
+    // Optimized 160x160 avatar size for fast cloud sync
+    const cropSize = 160;
     const outCanvas = document.createElement('canvas');
     outCanvas.width = cropSize;
     outCanvas.height = cropSize;
@@ -84,9 +98,9 @@ export default function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
     outCtx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, Math.PI * 2);
     outCtx.clip();
 
-    const scale = cropSize / 280;
-    const centerX = (280 / 2 + offset.x) * scale;
-    const centerY = (280 / 2 + offset.y) * scale;
+    const scale = cropSize / 260;
+    const centerX = (260 / 2 + offset.x) * scale;
+    const centerY = (260 / 2 + offset.y) * scale;
     outCtx.translate(centerX, centerY);
 
     const aspect = imgObj.width / imgObj.height;
@@ -100,13 +114,15 @@ export default function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
     outCtx.drawImage(imgObj, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
     outCtx.restore();
 
-    onCrop(outCanvas.toDataURL('image/png'));
+    // Export as highly compressed JPEG (12-18KB) for lightning-fast cross-device sync
+    const compactBase64 = outCanvas.toDataURL('image/jpeg', 0.85);
+    onCrop(compactBase64);
   };
 
   return (
     <Modal title="Crop & Adjust Profile Picture" onClose={onCancel}>
       <div className="cropper-container">
-        <p className="cropper-tip">Drag image to position photo inside ring.</p>
+        <p className="cropper-tip">Drag or touch photo to center it inside circle.</p>
         <div className="canvas-wrapper">
           <canvas
             ref={canvasRef}
@@ -114,12 +130,15 @@ export default function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleMouseUp}
             style={{ cursor: isDragging ? 'grabbing' : 'grab', borderRadius: '12px', touchAction: 'none' }}
           />
         </div>
 
         <div className="field-group" style={{ marginTop: '16px', width: '100%' }}>
-          <label>Zoom Level: {Math.round(zoom * 100)}%</label>
+          <label>Zoom: {Math.round(zoom * 100)}%</label>
           <input
             type="range"
             min="1"
@@ -136,7 +155,7 @@ export default function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
             Cancel
           </button>
           <button type="button" className="btn-primary full-width" onClick={applyCrop}>
-            Crop & Apply Photo ✨
+            Apply & Save Photo ✨
           </button>
         </div>
       </div>
