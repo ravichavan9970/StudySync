@@ -69,6 +69,60 @@ export async function fetchCloudUsers() {
   return {};
 }
 
+export async function syncUserDataToCloud(emailKey) {
+  if (!emailKey || typeof window === 'undefined') return;
+  const em = emailKey.toLowerCase().trim();
+  try {
+    const usersMap = getStored(STORAGE_KEYS.USERS_MAP, {});
+    const user = usersMap[em] || getStored(STORAGE_KEYS.USER, {});
+    const tasks = getStored(`${STORAGE_KEYS.TASKS}_${em}`, []);
+    const notes = getStored(`${STORAGE_KEYS.NOTES}_${em}`, []);
+    const subjects = getStored(`${STORAGE_KEYS.SUBJECTS}_${em}`, []);
+    const categories = getStored(`${STORAGE_KEYS.CATEGORIES}_${em}`, []);
+    const sessions = getStored(`${STORAGE_KEYS.SESSIONS}_${em}`, []);
+
+    const payload = {
+      ...user,
+      email: em,
+      tasks,
+      notes,
+      subjects,
+      categories,
+      sessions,
+    };
+
+    fetch('/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  } catch {}
+}
+
+export async function pullUserDataFromCloud(emailKey) {
+  if (!emailKey || typeof window === 'undefined') return;
+  const em = emailKey.toLowerCase().trim();
+  try {
+    const res = await fetch(`/api/sync?email=${encodeURIComponent(em)}`).catch(() => null);
+    if (res && res.ok) {
+      const data = await res.json().catch(() => null);
+      if (data?.user) {
+        const u = data.user;
+        const usersMap = getStored(STORAGE_KEYS.USERS_MAP, {});
+        usersMap[em] = { ...usersMap[em], ...u };
+        setStored(STORAGE_KEYS.USERS_MAP, usersMap);
+
+        if (Array.isArray(u.tasks)) setStored(`${STORAGE_KEYS.TASKS}_${em}`, u.tasks);
+        if (Array.isArray(u.notes)) setStored(`${STORAGE_KEYS.NOTES}_${em}`, u.notes);
+        if (Array.isArray(u.subjects)) setStored(`${STORAGE_KEYS.SUBJECTS}_${em}`, u.subjects);
+        if (Array.isArray(u.categories)) setStored(`${STORAGE_KEYS.CATEGORIES}_${em}`, u.categories);
+        if (Array.isArray(u.sessions)) setStored(`${STORAGE_KEYS.SESSIONS}_${em}`, u.sessions);
+        return u;
+      }
+    }
+  } catch {}
+}
+
 export async function deleteCloudUser(id, email, all = false) {
   try {
     if (typeof window !== 'undefined') {
@@ -202,11 +256,11 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
   let categories = getStored(getScopedKey(STORAGE_KEYS.CATEGORIES), []);
   let sessions = getStored(getScopedKey(STORAGE_KEYS.SESSIONS), []);
 
-  const saveTasks = (next) => { tasks = next; setStored(getScopedKey(STORAGE_KEYS.TASKS), next); };
-  const saveNotes = (next) => { notes = next; setStored(getScopedKey(STORAGE_KEYS.NOTES), next); };
-  const saveSubjects = (next) => { subjects = next; setStored(getScopedKey(STORAGE_KEYS.SUBJECTS), next); };
-  const saveCategories = (next) => { categories = next; setStored(getScopedKey(STORAGE_KEYS.CATEGORIES), next); };
-  const saveSessions = (next) => { sessions = next; setStored(getScopedKey(STORAGE_KEYS.SESSIONS), next); };
+  const saveTasks = (next) => { tasks = next; setStored(getScopedKey(STORAGE_KEYS.TASKS), next); syncUserDataToCloud(activeEmailKey); };
+  const saveNotes = (next) => { notes = next; setStored(getScopedKey(STORAGE_KEYS.NOTES), next); syncUserDataToCloud(activeEmailKey); };
+  const saveSubjects = (next) => { subjects = next; setStored(getScopedKey(STORAGE_KEYS.SUBJECTS), next); syncUserDataToCloud(activeEmailKey); };
+  const saveCategories = (next) => { categories = next; setStored(getScopedKey(STORAGE_KEYS.CATEGORIES), next); syncUserDataToCloud(activeEmailKey); };
+  const saveSessions = (next) => { sessions = next; setStored(getScopedKey(STORAGE_KEYS.SESSIONS), next); syncUserDataToCloud(activeEmailKey); };
 
   // 1. REGISTRATION
   if (cleanPath === '/auth/register') {
@@ -338,6 +392,11 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
 
     // Set existing user as active user
     setStored(STORAGE_KEYS.USER, existing);
+    if (existing.email) {
+      try {
+        await pullUserDataFromCloud(existing.email);
+      } catch {}
+    }
     try {
       if (existing.name) localStorage.setItem('studysync-user-name', existing.name);
     } catch {}
@@ -348,6 +407,7 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       name: existing.name,
       email: existing.email,
       profilePictureUrl: existing.profilePictureUrl || '',
+      avatarBadge: existing.avatarBadge || '🎓',
       role: existing.role || 'USER',
     };
   }
@@ -366,7 +426,7 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       const em = activeUser.email.toLowerCase();
       usersMap[em] = { ...(usersMap[em] || {}), ...activeUser };
       setStored(STORAGE_KEYS.USERS_MAP, usersMap);
-      pushUserToCloud(activeUser);
+      syncUserDataToCloud(em);
     }
     try {
       if (activeUser.name) localStorage.setItem('studysync-user-name', activeUser.name);

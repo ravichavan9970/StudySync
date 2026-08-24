@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { api } from '../api';
+import { api, pullUserDataFromCloud, syncUserDataToCloud } from '../api';
 
 const StudySyncContext = createContext();
 
@@ -62,6 +62,11 @@ export function StudySyncProvider({ children }) {
     if (!token) return;
     setLoading(true);
     try {
+      if (user?.email) {
+        try {
+          await pullUserDataFromCloud(user.email);
+        } catch {}
+      }
       const [tasks, activeNotes, archivedNotes, subjects, categories, dashboard, statistics, notifications] = await Promise.allSettled([
         loadAllPages('/tasks?sort=createdAt'),
         loadAllPages('/notes?archived=false'),
@@ -89,7 +94,7 @@ export function StudySyncProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [loadAllPages, logout, request, showToast, token]);
+  }, [loadAllPages, logout, request, showToast, token, user]);
 
   useEffect(() => {
     if (token) {
