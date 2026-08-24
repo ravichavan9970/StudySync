@@ -1,17 +1,44 @@
-# 🎓 StudySync Enterprise Full-Stack
-### Academic Productivity Suite, Deep Work Pomodoro & Dual-Cloud Resilience Platform
+# 🎓 StudySync — Modern Full-Stack Academic Productivity Platform
 
-🌐 **Live Web Application**: [https://studysync-app.vercel.app](https://studysync-app.vercel.app)
+<div align="center">
 
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-brightgreen.svg?logo=springboot)](https://spring.io/projects/spring-boot)
-[![Java 21](https://img.shields.io/badge/Java-21%20LTS-orange.svg?logo=openjdk)](https://openjdk.org/)
-[![React](https://img.shields.io/badge/React-19.2-blue.svg?logo=react)](https://react.dev/)
-[![React Router](https://img.shields.io/badge/React%20Router-7.1-ca4245.svg?logo=reactrouter)](https://reactrouter.com/)
-[![Vite](https://img.shields.io/badge/Vite-8.1-purple.svg?logo=vite)](https://vitejs.dev/)
-[![Docker](https://img.shields.io/badge/Docker-Multi--Stage-2496ED.svg?logo=docker)](https://www.docker.com/)
-[![Render](https://img.shields.io/badge/Render-Cloud%20Deploy-46E3B7.svg?logo=render)](https://render.com/)
+![StudySync Banner](https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&h=400&q=80)
 
-> **StudySync** is a full-stack, enterprise-grade student productivity ecosystem designed for high-performing students, engineers, and researchers. It seamlessly integrates multi-page task lifecycles, rich knowledge base notes, distraction-free Pomodoro deep-work intervals, 7-day syllabus planning, momentum analytics, two-tier security, and dual-cloud disaster recovery.
+### *Plan with clarity. Study with focus. Sync everywhere.*
+
+[![Live App](https://img.shields.io/badge/🌐_Live_App-studysync--app--five.vercel.app-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://studysync-app-five.vercel.app)
+[![API Status](https://img.shields.io/badge/⚡_API_Status-Online-10b981?style=for-the-badge&logo=render&logoColor=white)](https://studysync-api.onrender.com)
+[![GitHub Repo](https://img.shields.io/badge/📦_GitHub-StudySync-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ravichavan9970/StudySync)
+
+<br/>
+
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4.2-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java 21 LTS](https://img.shields.io/badge/Java-21_LTS-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Vite](https://img.shields.io/badge/Vite-8.1-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Vercel Edge](https://img.shields.io/badge/Vercel-Serverless_Edge_Sync-000000?style=flat-square&logo=vercel&logoColor=white)](https://vercel.com/)
+[![Docker](https://img.shields.io/badge/Docker-Multi--Stage-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
+
+</div>
+
+---
+
+## 🌟 Overview
+
+**StudySync** is a high-performance, full-stack student productivity ecosystem designed for modern learners, software engineers, and researchers. It unifies daily study momentum, smart task management, formula cheat sheets & notes, distraction-free Pomodoro deep work sessions, weekly calendar planning, and real-time analytics into a single cross-device application.
+
+Equipped with a **Universal CloudSync Engine**, your workspace, profile picture, tasks, and notes synchronize across **Mobile, Laptop, Desktop, and Tablet** in milliseconds with strict multi-tenant isolation.
+
+---
+
+## 🚀 Key Highlights
+
+- ⚡ **Universal Cross-Device Synchronization**: Instant, real-time bidirectional state sync across all viewports with continuous heartbeat polling and automatic visibility resync.
+- 🔒 **Multi-Tenant Data Isolation**: Complete separation of student data. Every account (`Ravi`, `Shrikant`, and every new user) gets an isolated workspace vault.
+- 📸 **High-Definition Profile Cropper**: Integrated 360px HD image cropper with full mobile touch drag and pinch-to-zoom capabilities (supports photos up to 3MB).
+- ⏱️ **Integrated Pomodoro & Focus Zone**: Link focus sessions directly to academic tasks and auto-mark tasks as conquered upon timer completion.
+- 🛡️ **Master Admin Operations Hub (`/admin`)**: Dedicated command center for system administrators with live roster audits, aggregated statistics, and database reset controls.
+- 🎨 **Adaptive Themes & Dark Mode**: Dynamic color accents (*Violet, Teal, Rose, Amber, Cyan*) and light/dark theme switching.
 
 ---
 
@@ -19,185 +46,166 @@
 
 ```mermaid
 flowchart TD
-    subgraph Client Layer ["🌐 Client Application (React 19 / Vite / React Router)"]
-        PublicApp["🏠 Public Landing & Showcase (/)"]
-        AuthView["🔑 Auth Page (/login, /register)"]
-        Workspace["📊 Student Workspace (/dashboard, /tasks, /notes, /planner, /focus, /analytics)"]
-        AdminCommand["🛡️ Admin Operations Command Hub (/admin)"]
+    subgraph Clients ["📱 Multi-Device Clients"]
+        Mobile["📱 Mobile Phone (iOS / Android)"]
+        Laptop["💻 Laptop & Desktop (Chrome / Safari / Edge)"]
+        Tablet["📟 Tablet (iPad / Android Tablet)"]
     end
 
-    subgraph Primary Cloud Layer ["☁️ Render Cloud Backend Service"]
-        PrimaryAPI["☕ Java 21 Spring Boot 3 REST API<br>Render Web Service (/api/v1/*)"]
-        PrimaryDB[("💾 Disk Persistent Relational Database<br>H2 Disk Mode & Cloud MySQL/PostgreSQL")]
+    subgraph EdgeLayer ["⚡ Vercel Edge Serverless Network"]
+        VercelApp["🌐 React 19 Client Hosting (studysync-app-five.vercel.app)"]
+        EdgeSync["🔄 Edge Real-Time CloudSync Relay (/api/sync)"]
     end
 
-    subgraph Security & Resilience Layer
-        SecurityEngine["🛡️ Multi-Tier JWT & Master Passcode Security"]
-        DisasterRecovery["💾 1-Click JSON Snapshot & Local Vault Engine"]
-        SwaggerDocs["📑 OpenAPI 3 / Swagger Documentation"]
+    subgraph BackendLayer ["☁️ Render Production Cloud"]
+        SpringAPI["☕ Java 21 Spring Boot 3 REST API (studysync-api.onrender.com/api/v1)"]
+        Security["🛡️ JWT Authentication & Passcode Filter"]
+        PostgresDB[("💾 Relational Database Engine (Disk Persistence / PostgreSQL)")]
     end
 
-    PublicApp --> AuthView
-    AuthView --> Workspace
-    Workspace -->|Stateless JWT Bearer REST| PrimaryAPI
-    AdminCommand -->|Master Passcode & Admin Role| PrimaryAPI
-    PrimaryAPI <--> PrimaryDB
-    PrimaryAPI --> SecurityEngine
-    AdminCommand <--> DisasterRecovery
-    PrimaryAPI --> SwaggerDocs
+    Mobile <-->|Real-Time State Pulse| EdgeSync
+    Laptop <-->|Real-Time State Pulse| EdgeSync
+    Tablet <-->|Real-Time State Pulse| EdgeSync
+
+    Clients -->|HTTPS Web App| VercelApp
+    VercelApp <-->|REST API + Bearer JWT| SpringAPI
+    SpringAPI --> Security
+    Security <--> PostgresDB
 ```
 
 ---
 
-## ✨ Core Platform Modules
+## 📱 Feature Showcase
 
-### 1. 🌐 Multi-Page Student Workspace (`react-router-dom`)
-- **Interactive Overview Dashboard (`/dashboard`)**:
-  - Daily target completion ring with dynamic SVG animated stroke.
-  - Urgent priority task queue with 1-click focus launcher.
-  - Active study subjects breakdown with course codes, progress percentages, and color palettes.
-  - Deep focus promo callout.
-- **Task Management Workspace (`/tasks`)**:
-  - Filter tabs (*All Tasks, Due Today, Upcoming, Completed*) and live search.
-  - Priority pills (*High, Medium, Low*), course associations, due dates, and timer duration presets.
-  - In-line completion toggle and task editing.
-- **Knowledge Base & Study Notes (`/notes`)**:
-  - Rich formula cheat sheets and lecture summaries with category badge tags.
-  - Pinning to folder top, archive/restore actions, and full-text search.
-- **7-Day Weekly Study Planner (`/planner`)**:
-  - Full Monday-Sunday calendar grid with daily task stacks and inline task creator.
-- **Deep Work & Pomodoro Focus Room (`/focus`)**:
-  - Animated circular SVG countdown timer (25m Pomodoro, 50m Deep Work, 5m Break).
-  - Link session to specific task to automatically mark complete upon timer expiration.
-  - Optional completion audio chime and flow state guidelines.
-- **Productivity & Momentum Analytics (`/analytics`)**:
-  - Completed task count, total recorded focus hours, streak counter, and momentum index.
-  - Weekly comparative activity chart (Focus Minutes vs Completed Tasks).
+<details open>
+<summary><b>1. 📊 Interactive Dashboard Overview (<code>/dashboard</code>)</b></summary>
+<br/>
+Real-time study command center displaying daily target progress rings, urgent priority tasks, course breakdowns with customized colors, and a 1-click focus launcher.
+</details>
 
----
+<details open>
+<summary><b>2. 📝 Smart Task Management (<code>/tasks</code>)</b></summary>
+<br/>
+Organize coursework by priority levels (<i>High, Medium, Low</i>), due dates, and focus intervals. Filter dynamically by <b>All Tasks</b>, <b>Due Today</b>, <b>Upcoming</b>, and <b>Completed</b> with zero data loss.
+</details>
 
-### 2. 🛡️ Standalone Admin Command Hub (`/admin`)
-- **Operations Auditor & User Roster**:
-  - Real-time registered accounts table, roles, streak records, join dates, and account management.
-  - System activity metrics: JVM memory consumption, active entity counts, and cloud server status.
-- **Enterprise Disaster Recovery Engine**:
-  - 💾 **`Export Full System Snapshot`**: 1-click timestamped JSON backup download.
-  - 📥 **`Import & Restore Snapshot`**: Instant state reconstruction from any JSON backup file.
-  - 🗄️ **`Lock Local Browser Vault`**: Freezes current data snapshot in browser offline storage.
+<details open>
+<summary><b>3. 📚 Knowledge Base & Study Notes (<code>/notes</code>)</b></summary>
+<br/>
+Rich digital workspace for lecture notes, formulas, and code summaries. Pin critical notes to the top, search in real-time, and organize into active or archived folders.
+</details>
 
----
+<details open>
+<summary><b>4. 🗓️ 7-Day Weekly Study Planner (<code>/planner</code>)</b></summary>
+<br/>
+Monday-to-Sunday visual study calendar allowing students to schedule and balance academic workload day-by-day.
+</details>
 
-### 3. ☕ Java 21 Spring Boot 3 Cloud Backend
-- **Java 21 LTS** and **Spring Boot 3.4.2**.
-- **Multi-Cloud Database Flexibility**:
-  - Works out-of-the-box on Render with disk-persisted database storage (`jdbc:h2:file:/app/data/studysyncdb;AUTO_SERVER=TRUE`).
-  - Supports external Cloud MySQL / PostgreSQL via `SPRING_DATASOURCE_URL` or `DB_URL`.
-- **Stateless Bearer JWT Authentication** with BCrypt password encryption and row-level ownership validation.
-- **High-precedence CORS configuration** supporting production domains (`*.onrender.com`, `*.vercel.app`, `localhost`).
-- **OpenAPI 3 / Swagger Documentation**: `/api/v1/swagger-ui.html`.
+<details open>
+<summary><b>5. ⏱️ Deep Work & Pomodoro Focus Room (<code>/focus</code>)</b></summary>
+<br/>
+Distraction-free focus timer featuring preset intervals (25m Pomodoro, 50m Deep Flow, 5m Sprint) linked directly to coursework items.
+</details>
+
+<details open>
+<summary><b>6. 📈 Momentum & Habit Analytics (<code>/analytics</code>)</b></summary>
+<br/>
+Visual bar charts and metrics tracking completed tasks, weekly focus hours, daily study streaks, and productivity indices.
+</details>
+
+<details open>
+<summary><b>7. 🛡️ Master Admin Command Hub (<code>/admin</code>)</b></summary>
+<br/>
+Restricted administrator portal for <b><code>Ravi@7447</code></b> to audit live system metrics, inspect all registered student accounts across devices, and manage global records.
+</details>
 
 ---
 
-## 🚀 Quick Run & Deployment Guide
+## 🛠️ Technology Stack
 
-### Local Development
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | React 19.2, Vite 8.1, React Router 7.1, CSS3 Custom Properties |
+| **Backend** | Java 21 LTS, Spring Boot 3.4.2, Spring Security, Spring Data JPA |
+| **Edge Serverless** | Vercel Serverless Edge Functions (`/api/sync`), Node.js ES Modules |
+| **Database** | PostgreSQL / H2 Disk Persistent Engine / MySQL |
+| **Security** | Stateless JWT (JSON Web Tokens), BCrypt Password Hashing, Master Passcode Auth |
+| **Container & Cloud** | Docker Multi-Stage, Render Cloud Web Services, Vercel Global Edge Network |
 
-#### 1. Backend Server (Terminal 1)
+---
+
+## ⚡ Quick Start (Local Setup)
+
+### Prerequisites
+- **Node.js** 18+ and **npm**
+- **Java 21 JDK** and **Maven 3.9+**
+- **Git**
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/ravichavan9970/StudySync.git
+cd StudySync
+```
+
+### 2. Run Backend (Terminal 1)
 ```bash
 cd backend
 mvn spring-boot:run
 ```
-*API Base URL: `http://localhost:8080/api/v1`*  
-*Swagger Docs: `http://localhost:8080/api/v1/swagger-ui.html`*  
-*H2 Console: `http://localhost:8080/api/v1/h2-console`*
+- *REST API Base*: `http://localhost:8080/api/v1`
+- *Swagger UI*: `http://localhost:8080/api/v1/swagger-ui.html`
+- *H2 Console*: `http://localhost:8080/api/v1/h2-console`
 
-#### 2. Frontend Workspace (Terminal 2)
+### 3. Run Frontend (Terminal 2)
 ```bash
 cd frontend/studysync-frontend
+npm install
 npm run dev
 ```
-*Web Application: `http://localhost:5173`*
-
----
-
-### Cloud Deployment (Render & Vercel)
-
-#### 1. Deploy Backend on Render (Web Service)
-1. Push repository to GitHub.
-2. In [Render Dashboard](https://dashboard.render.com), click **New + Web Service**.
-3. Select your repository and choose **Docker** runtime.
-4. Set Docker Build Context to root and DockerfilePath to `Dockerfile`.
-5. Add a Persistent Disk mounted at `/app/data` (1GB).
-6. Set Environment Variables:
-   - `PORT`: `8080`
-   - `SPRING_DATASOURCE_URL`: `jdbc:h2:file:/app/data/studysyncdb;DB_CLOSE_DELAY=-1`
-   - `JWT_SECRET`: `your-strong-random-32-byte-secret`
-   - `ADMIN_PASSCODE`: `StudySync#*&Master2026!Admin`
-
-#### 2. Deploy Frontend on Vercel
-1. In [Vercel Dashboard](https://vercel.com), import your repository.
-2. Set Root Directory to `frontend/studysync-frontend`.
-3. Set Framework Preset to **Vite**.
-4. Set Environment Variable:
-   - `VITE_API_URL`: `https://your-studysync-api.onrender.com/api/v1`
-5. Click **Deploy**.
+- *Web App*: `http://localhost:5173`
 
 ---
 
 ## 🔐 Credentials & Default Access
 
-| Portal / Resource | Access URL | Credentials |
-|---|---|---|
-| **Public Web App** | `https://studysync-app.vercel.app` | Register or Demo Login |
-| **Admin Command Hub** | `/admin` | Passcode: `StudySync#*&Master2026!Admin` |
-| **Root Admin Login** | `/login` | `admin@studysync.io` / `StudySync#*&Master2026!Admin` |
-| **H2 Web Console** | `/api/v1/h2-console` | JDBC: `jdbc:h2:file:./data/studysyncdb;AUTO_SERVER=TRUE`<br>User/Pass: `sa` / `StudySync#*&Master2026!Admin` |
+| Portal | URL Path | Credentials |
+| :--- | :--- | :--- |
+| **Public Application** | `/` | Register or Login with any email |
+| **Master Admin Hub** | `/admin` | Passcode: `StudySync#*&Master2026!Admin` |
+| **Master Admin Account** | `/login` | `Ravi@7447` / `StudySync#*&Master2026!Admin` |
 
 ---
 
-## 📂 Project Structure
+## 📁 Repository Structure
 
 ```text
-studysync-fullstack/
-├── Dockerfile                     # Root multi-stage Dockerfile for Render cloud deployment
-├── render.yaml                    # Render Blueprint configuration with persistent disk
-├── package.json                   # Suite helper scripts (build:all, dev:backend, dev:frontend)
-├── credential.txt                 # Enterprise system credentials & URLs reference
-├── backend/                       # Spring Boot 3 / Java 21 REST API
-│   ├── pom.xml                    # Maven config (H2, MySQL, PostgreSQL, JWT, Security, Validation)
+StudySync/
+├── backend/                             # Java 21 / Spring Boot 3 Cloud API
+│   ├── pom.xml                          # Maven dependencies & build configuration
 │   └── src/
 │       ├── main/java/com/studysync/
-│       │   ├── config/            # SecurityConfig, WebConfig, AdminBootstrap, OpenApiConfig
-│       │   ├── controller/        # Admin, Auth, Task, Note, Session, Category, Dashboard, Stats
-│       │   ├── domain/            # JPA Entities (User, Task, Note, Subject, Category, Session)
-│       │   ├── dto/               # Request & Response Data Transfer Objects
-│       │   ├── repository/        # Spring Data JPA Repositories
-│       │   └── service/           # Core business logic services
+│       │   ├── config/                  # SecurityConfig, AdminBootstrap, OpenApiConfig
+│       │   ├── controller/              # Auth, Tasks, Notes, Subjects, Categories, Admin
+│       │   ├── domain/                  # User, Task, Note, Subject, Category, Session entities
+│       │   ├── dto/                     # Data Transfer Objects
+│       │   ├── repository/              # Spring Data JPA Repositories
+│       │   └── service/                 # Core business services
 │       └── main/resources/
-│           └── application.yml    # Cloud-ready configuration with H2 disk mode & dynamic $PORT
+│           └── application.yml          # Production datasource & security config
 ├── frontend/
-│   └── studysync-frontend/        # React 19 / Vite / React Router Client
-│       ├── vercel.json            # Vercel SPA client routing configuration
-│       ├── public/_redirects      # Netlify / Cloudflare SPA rewrite rules
+│   └── studysync-frontend/              # React 19 / Vite SPA
+│       ├── api/
+│       │   └── sync.js                  # Vercel Serverless Real-Time Cloud Sync Engine
+│       ├── vercel.json                  # Edge routing & API rewrite rules
 │       ├── src/
-│       │   ├── context/           # AuthContext, StudySyncContext, ThemeContext
-│       │   ├── components/
-│       │   │   ├── common/        # Navbar, Sidebar, TopHeader, Footer, RouteGuards, Toast, Avatar
-│       │   │   ├── modals/        # TaskModal, NoteModal, SubjectModal, CategoryModal, ProfileModal, AdminLoginModal
-│       │   │   ├── dashboard/     # DailyTarget, PriorityTasks, SubjectBreakdown, FocusPromo
-│       │   │   ├── tasks/         # TaskRow, TaskToolbar
-│       │   │   ├── notes/         # NoteCard, NoteToolbar
-│       │   │   ├── planner/       # PlannerDayCard
-│       │   │   ├── focus/         # FocusTimer, FocusIntentionCard
-│       │   │   ├── analytics/     # ProductivityChart, MetricCard
-│       │   │   └── admin/         # AdminSystemStats, AdminUsersTable, AdminDisasterRecovery
-│       │   ├── pages/             # LandingPage, DashboardPage, TasksPage, NotesPage, PlannerPage, FocusPage, AnalyticsPage, AdminPortalPage, AuthPage, NotFoundPage
-│       │   ├── App.jsx            # Main route orchestration shell
-│       │   ├── App.css            # Responsive styles & theme definitions
-│       │   ├── api.js             # REST API Client & Offline Vault Handler
-│       │   └── main.jsx           # BrowserRouter mount point
-└── database/
-    └── schema.sql                 # MySQL Schema definition & indexes
+│       │   ├── components/              # Common, Dashboard, Tasks, Notes, Focus, Admin UI
+│       │   ├── context/                 # AuthContext, StudySyncContext, ThemeContext
+│       │   ├── pages/                   # Multi-page views & routes
+│       │   ├── api.js                   # Universal CloudSync Engine & Client API
+│       │   └── App.jsx                  # Main Application Shell
+├── Dockerfile                           # Multi-stage Docker production build
+├── render.yaml                          # Render Cloud blueprint configuration
+└── README.md                            # Comprehensive project documentation
 ```
 
 ---
@@ -205,8 +213,12 @@ studysync-fullstack/
 ## 👨‍💻 Author & Maintainer
 
 **Chavan Ravindra**  
-- Email: [ravindrachavan265125@gmail.com](mailto:ravindrachavan265125@gmail.com)  
-- LinkedIn: [linkedin.com/in/ravindrachavan](https://linkedin.com/in/ravindrachavan)  
-- GitHub: [github.com/ravindrachavan](https://github.com/ravindrachavan)  
+- **Email**: [ravindrachavan265125@gmail.com](mailto:ravindrachavan265125@gmail.com)  
+- **GitHub**: [@ravichavan9970](https://github.com/ravichavan9970)  
+- **Project Repository**: [https://github.com/ravichavan9970/StudySync](https://github.com/ravichavan9970/StudySync)
 
-*Built with excellence for high-achieving student communities worldwide.* 🚩🎓
+---
+
+<div align="center">
+  <sub>Built with ❤️ for student communities and high-achievers worldwide.</sub>
+</div>
