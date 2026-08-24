@@ -126,6 +126,14 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
+    // If backend rejects login because account was created on another device in offline mode, resolve via Cloud Sync
+    if (path === '/auth/login' && (response.status === 400 || response.status === 401 || response.status === 404)) {
+      try {
+        const offlineRes = await handleOfflineDemoRequest(path, method, body);
+        if (offlineRes) return offlineRes;
+      } catch {}
+    }
+
     const detailsMsg =
       typeof data?.details === 'object' && data?.details !== null
         ? Object.entries(data.details).map(([field, msg]) => `${field}: ${msg}`).join(', ')
@@ -133,6 +141,26 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
     const error = new Error(detailsMsg || data?.error || data?.message || 'Request failed.');
     error.status = response.status;
     throw error;
+  }
+
+  // Mirror successful online registrations to Cloud Sync
+  if (path === '/auth/register' && data && (data.userId || data.email)) {
+    try {
+      const emailKey = (data.email || body.email || '').toLowerCase().trim();
+      const newUser = {
+        id: data.userId || `usr_${Date.now()}`,
+        name: data.name || body.name || nameFromEmail(emailKey),
+        email: emailKey,
+        role: data.role || 'USER',
+        profilePictureUrl: resolveImageUrl(data.profilePictureUrl || body.profilePictureUrl || ''),
+        avatarBadge: '🎓',
+        createdAt: new Date().toISOString(),
+      };
+      const localUsers = getStored(STORAGE_KEYS.USERS_MAP, {});
+      localUsers[emailKey] = newUser;
+      setStored(STORAGE_KEYS.USERS_MAP, localUsers);
+      pushUserToCloud(newUser);
+    } catch {}
   }
 
   return data;
