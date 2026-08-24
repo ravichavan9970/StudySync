@@ -9,6 +9,7 @@ import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
 import MobileBottomNav from './components/common/MobileBottomNav';
 import { ProtectedRoute, AdminRoute } from './components/common/RouteGuards';
+import { fetchCloudUsers } from './api';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -48,6 +49,17 @@ function AppShell() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ passcode: 'ping' }),
+    }).catch(() => {});
+
+    // Pull registered accounts from Cloud Sync on startup
+    fetchCloudUsers().then((cloudUsers) => {
+      if (cloudUsers && typeof cloudUsers === 'object') {
+        try {
+          const localMap = JSON.parse(localStorage.getItem('studysync_users_map') || '{}');
+          const merged = { ...localMap, ...cloudUsers };
+          localStorage.setItem('studysync_users_map', JSON.stringify(merged));
+        } catch {}
+      }
     }).catch(() => {});
   }, []);
   const {

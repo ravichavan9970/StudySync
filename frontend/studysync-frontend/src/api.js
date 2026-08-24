@@ -139,7 +139,7 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
 }
 
 // Multi-User Offline Vault Handler
-function handleOfflineDemoRequest(path, method, bodyRaw) {
+async function handleOfflineDemoRequest(path, method, bodyRaw) {
   const body = typeof bodyRaw === 'string' ? JSON.parse(bodyRaw) : bodyRaw || {};
   const cleanPath = path.split('?')[0];
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -267,7 +267,41 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
       };
     }
 
-    const existing = usersMap[emailKey];
+    let existing = usersMap[emailKey];
+
+    // If not found in local browser storage, check Cloud Sync (e.g. registered on mobile)
+    if (!existing) {
+      try {
+        const cloudUsers = await fetchCloudUsers();
+        if (cloudUsers && cloudUsers[emailKey]) {
+          existing = cloudUsers[emailKey];
+          usersMap[emailKey] = existing;
+          setStored(STORAGE_KEYS.USERS_MAP, usersMap);
+        }
+      } catch {}
+    }
+
+    // Fallback: If unknown email, dynamically register account so mobile and laptop can sign in freely
+    if (!existing && emailKey) {
+      const name = nameFromEmail(emailKey);
+      existing = {
+        id: `usr_${Math.random().toString(36).slice(2, 10)}`,
+        name,
+        email: emailKey,
+        role: 'USER',
+        profilePictureUrl: '',
+        avatarBadge: '🎓',
+        darkMode: false,
+        theme: 'violet',
+        streakCount: 0,
+        productivityScore: 0,
+        createdAt: new Date().toISOString(),
+      };
+      usersMap[emailKey] = existing;
+      setStored(STORAGE_KEYS.USERS_MAP, usersMap);
+      pushUserToCloud(existing);
+    }
+
     if (!existing) {
       const err = new Error('Invalid email or password. This user account does not exist.');
       err.status = 401;
