@@ -164,13 +164,6 @@ export default function ProfileModal({ onClose }) {
           >
             🎨 Appearance
           </button>
-          <button
-            type="button"
-            className={`profile-tab-btn ${tab === 'study' ? 'active' : ''}`}
-            onClick={() => setTab('study')}
-          >
-            ⚙️ Preferences
-          </button>
         </div>
 
         <form onSubmit={handleSubmit} style={{ marginTop: '10px' }}>
@@ -275,42 +268,6 @@ export default function ProfileModal({ onClose }) {
             </div>
           )}
 
-          {/* TAB 3: STUDY PREFERENCES */}
-          {tab === 'study' && (
-            <div className="profile-tab-content">
-              <div className="field-group compact">
-                <label>Default Focus Duration</label>
-                <select
-                  className="select-input"
-                  value={defaultFocusMinutes}
-                  onChange={(e) => setDefaultFocusMinutes(Number(e.target.value))}
-                >
-                  <option value={15}>15 Minutes (Sprint)</option>
-                  <option value={25}>25 Minutes (Standard)</option>
-                  <option value={50}>50 Minutes (Deep Flow)</option>
-                  <option value={90}>90 Minutes (Intensive)</option>
-                </select>
-              </div>
-
-              <label className="checkbox-field" style={{ marginBottom: '8px', fontSize: '12px' }}>
-                <input
-                  type="checkbox"
-                  checked={enableReminders}
-                  onChange={(e) => setEnableReminders(e.target.checked)}
-                />
-                <span>Daily notifications & overdue alerts</span>
-              </label>
-
-              <label className="checkbox-field" style={{ marginBottom: '12px', fontSize: '12px' }}>
-                <input
-                  type="checkbox"
-                  checked={soundEnabled}
-                  onChange={(e) => setSoundEnabled(e.target.checked)}
-                />
-                <span>Play chime when Pomodoro timer ends</span>
-              </label>
-            </div>
-          )}
 
           {/* Action Row */}
           <div className="modal-footer-actions">
