@@ -7,8 +7,8 @@
 ### *Plan with clarity. Study with focus. Sync everywhere.*
 
 [![Live App](https://img.shields.io/badge/🌐_Live_App-studysync--app--five.vercel.app-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://studysync-app-five.vercel.app)
-[![API Status](https://img.shields.io/badge/⚡_API_Status-Online-10b981?style=for-the-badge&logo=render&logoColor=white)](https://studysync-api.onrender.com)
-[![GitHub Repo](https://img.shields.io/badge/📦_GitHub-StudySync-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ravichavan9970/StudySync)
+[![API Status](https://img.shields.io/badge/⚡_API_Swagger_Docs-Online-10b981?style=for-the-badge&logo=swagger&logoColor=white)](https://studysync-api.onrender.com/api/v1/swagger-ui.html)
+[![GitHub Repo](https://img.shields.io/badge/📦_GitHub_Repo-StudySync-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ravichavan9970/StudySync)
 
 <br/>
 
@@ -23,18 +23,29 @@
 
 ---
 
+## 🔗 Live Deployments
+
+| Component | Production URL | Description |
+| :--- | :--- | :--- |
+| 🌐 **Web Application** | [https://studysync-app-five.vercel.app](https://studysync-app-five.vercel.app) | Primary client application for students |
+| 🛡️ **Admin Portal** | [https://studysync-app-five.vercel.app/admin](https://studysync-app-five.vercel.app/admin) | Centralized administrator command center |
+| 📑 **Interactive API Docs** | [https://studysync-api.onrender.com/api/v1/swagger-ui.html](https://studysync-api.onrender.com/api/v1/swagger-ui.html) | OpenAPI 3.0 / Swagger interactive API documentation |
+| ⚡ **Backend REST API** | [https://studysync-api.onrender.com/api/v1](https://studysync-api.onrender.com/api/v1) | Production Java 21 Spring Boot REST service |
+
+---
+
 ## 🌟 Overview
 
 **StudySync** is a high-performance, full-stack student productivity ecosystem designed for modern learners, software engineers, and researchers. It unifies daily study momentum, smart task management, formula cheat sheets & notes, distraction-free Pomodoro deep work sessions, weekly calendar planning, and real-time analytics into a single cross-device application.
 
-Equipped with a **Universal CloudSync Engine**, your workspace, profile picture, tasks, and notes synchronize across **Mobile, Laptop, Desktop, and Tablet** in milliseconds with strict multi-tenant isolation.
+Equipped with a **Universal CloudSync Engine**, your workspace, profile picture, tasks, and notes synchronize across **Mobile, Laptop, Desktop, and Tablet** in milliseconds with strict multi-tenant data isolation.
 
 ---
 
 ## 🚀 Key Highlights
 
 - ⚡ **Universal Cross-Device Synchronization**: Instant, real-time bidirectional state sync across all viewports with continuous heartbeat polling and automatic visibility resync.
-- 🔒 **Multi-Tenant Data Isolation**: Complete separation of student data. Every account (`Ravi`, `Shrikant`, and every new user) gets an isolated workspace vault.
+- 🔒 **Multi-Tenant Data Isolation**: Complete separation of student data. Every registered account receives an isolated, private workspace vault.
 - 📸 **High-Definition Profile Cropper**: Integrated 360px HD image cropper with full mobile touch drag and pinch-to-zoom capabilities (supports photos up to 3MB).
 - ⏱️ **Integrated Pomodoro & Focus Zone**: Link focus sessions directly to academic tasks and auto-mark tasks as conquered upon timer completion.
 - 🛡️ **Master Admin Operations Hub (`/admin`)**: Dedicated command center for system administrators with live roster audits, aggregated statistics, and database reset controls.
@@ -116,7 +127,7 @@ Visual bar charts and metrics tracking completed tasks, weekly focus hours, dail
 <details open>
 <summary><b>7. 🛡️ Master Admin Command Hub (<code>/admin</code>)</b></summary>
 <br/>
-Restricted administrator portal for <b><code>Ravi@7447</code></b> to audit live system metrics, inspect all registered student accounts across devices, and manage global records.
+Restricted administrator portal for system auditing, real-time user roster inspection, and database management.
 </details>
 
 ---
@@ -163,16 +174,6 @@ npm install
 npm run dev
 ```
 - *Web App*: `http://localhost:5173`
-
----
-
-## 🔐 Credentials & Default Access
-
-| Portal | URL Path | Credentials |
-| :--- | :--- | :--- |
-| **Public Application** | `/` | Register or Login with any email |
-| **Master Admin Hub** | `/admin` | Passcode: `StudySync#*&Master2026!Admin` |
-| **Master Admin Account** | `/login` | `Ravi@7447` / `StudySync#*&Master2026!Admin` |
 
 ---
 
