@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { api, session, resolveImageUrl, pullUserDataFromCloud } from '../api';
+import { api, session, resolveImageUrl, pullUserDataFromCloud, syncUserDataToCloud } from '../api';
 
 const AuthContext = createContext();
 
@@ -34,7 +34,6 @@ export function AuthProvider({ children }) {
       return null;
     }
     try {
-      setLoading(true);
       let userData = await api('/users/me', { token: activeToken });
 
       // Pull latest profile photo and settings from Cloud Sync across devices
@@ -69,6 +68,26 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (token) {
       loadCurrentUser(token);
+
+      const handleSync = () => {
+        if (document.visibilityState === 'visible') {
+          loadCurrentUser(token);
+        }
+      };
+      window.addEventListener('focus', handleSync);
+      document.addEventListener('visibilitychange', handleSync);
+
+      const userSyncInterval = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          loadCurrentUser(token);
+        }
+      }, 3500);
+
+      return () => {
+        window.removeEventListener('focus', handleSync);
+        document.removeEventListener('visibilitychange', handleSync);
+        clearInterval(userSyncInterval);
+      };
     } else {
       setLoading(false);
     }
@@ -134,15 +153,10 @@ export function AuthProvider({ children }) {
     const payload = {
       name: updates.name ?? user?.name ?? 'Student',
       email: updates.email ?? user?.email ?? '',
-      bio: updates.bio ?? user?.bio ?? '',
-      dailyTargetHours: updates.dailyTargetHours ?? user?.dailyTargetHours ?? 4,
-      profilePictureUrl: updates.profilePictureUrl ?? user?.profilePictureUrl ?? '',
+      profilePictureUrl: updates.profilePictureUrl !== undefined ? updates.profilePictureUrl : (user?.profilePictureUrl || ''),
       avatarBadge: updates.avatarBadge ?? user?.avatarBadge ?? '🎓',
       darkMode: updates.darkMode ?? user?.darkMode ?? false,
       theme: updates.theme ?? user?.theme ?? 'violet',
-      defaultFocusMinutes: updates.defaultFocusMinutes ?? user?.defaultFocusMinutes ?? 25,
-      enableReminders: updates.enableReminders ?? user?.enableReminders ?? true,
-      soundEnabled: updates.soundEnabled ?? user?.soundEnabled ?? true,
     };
 
     const res = await api('/profile', {
@@ -157,11 +171,17 @@ export function AuthProvider({ children }) {
       } catch {}
     }
 
-    const cleanPic = resolveImageUrl(res?.profilePictureUrl || payload.profilePictureUrl);
+    const cleanPic = resolveImageUrl(res?.profilePictureUrl !== undefined ? res.profilePictureUrl : payload.profilePictureUrl);
     const updatedUser = { ...user, ...payload, ...res, profilePictureUrl: cleanPic };
     setUser(updatedUser);
     try {
       localStorage.setItem('studysync_demo_user', JSON.stringify(updatedUser));
+      const map = JSON.parse(localStorage.getItem('studysync_users_map') || '{}');
+      if (updatedUser.email) {
+        map[updatedUser.email.toLowerCase()] = updatedUser;
+        localStorage.setItem('studysync_users_map', JSON.stringify(map));
+        syncUserDataToCloud(updatedUser.email);
+      }
     } catch {}
     return updatedUser;
   };

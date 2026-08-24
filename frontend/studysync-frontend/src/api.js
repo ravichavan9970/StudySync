@@ -64,7 +64,11 @@ export const CloudSync = {
     syncDebounceTimer = setTimeout(async () => {
       try {
         const usersMap = getStored(STORAGE_KEYS.USERS_MAP, {});
-        const user = usersMap[em] || getStored(STORAGE_KEYS.USER, {});
+        const currentUser = getStored(STORAGE_KEYS.USER, {});
+        const userRecord = usersMap[em] || {};
+        const isCurrent = (currentUser?.email || '').toLowerCase().trim() === em;
+        const activePic = userRecord.profilePictureUrl || (isCurrent ? currentUser.profilePictureUrl : '') || '';
+
         const tasks = getStored(`${STORAGE_KEYS.TASKS}_${em}`, []);
         const notes = getStored(`${STORAGE_KEYS.NOTES}_${em}`, []);
         const subjects = getStored(`${STORAGE_KEYS.SUBJECTS}_${em}`, []);
@@ -72,11 +76,12 @@ export const CloudSync = {
         const sessions = getStored(`${STORAGE_KEYS.SESSIONS}_${em}`, []);
 
         const payload = {
-          ...user,
+          ...userRecord,
+          ...(isCurrent ? currentUser : {}),
           email: em,
-          name: user.name || nameFromEmail(em),
-          profilePictureUrl: user.profilePictureUrl || '',
-          avatarBadge: user.avatarBadge || '🎓',
+          name: userRecord.name || (isCurrent ? currentUser.name : '') || nameFromEmail(em),
+          profilePictureUrl: activePic,
+          avatarBadge: userRecord.avatarBadge || (isCurrent ? currentUser.avatarBadge : '') || '🎓',
           tasks,
           notes,
           subjects,
