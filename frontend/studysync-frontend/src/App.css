@@ -2001,11 +2001,141 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 10px;
 }
 
-.form-help-text {
+.form-help-text, .field-help-text {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 4px;
+  display: block;
+}
+
+/* Profile Hero Card in Modal */
+.profile-hero-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  margin-bottom: 18px;
+}
+
+.profile-hero-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profile-hero-avatar-wrap .avatar-img,
+.profile-hero-avatar-wrap .avatar-placeholder {
+  width: 60px !important;
+  height: 60px !important;
+  font-size: 24px !important;
+}
+
+.photo-edit-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease;
+}
+
+.photo-edit-badge:hover {
+  transform: scale(1.15);
+}
+
+.profile-hero-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-hero-name {
+  font-size: 17px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--ink);
+}
+
+.profile-hero-email {
   font-size: 12px;
   color: var(--muted);
-  margin-top: 6px;
+  margin: 2px 0 8px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-hero-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.hero-stat-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  color: var(--ink);
+}
+
+.profile-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
   margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.profile-tab-btn {
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.profile-tab-btn:hover {
+  color: var(--ink);
+  background: var(--surface-hover);
+}
+
+.profile-tab-btn.active {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.btn-danger-outline {
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--rose);
+  background: transparent;
+  color: var(--rose);
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  display: inline-block;
+}
+
+.btn-danger-outline:hover {
+  background: var(--rose);
+  color: #ffffff;
 }
 
 /* ==========================================================================

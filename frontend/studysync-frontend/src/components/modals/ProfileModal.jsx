@@ -1,26 +1,29 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Modal } from '../common/UIElements';
 import ImageCropperModal from '../common/ImageCropperModal';
+import Avatar from '../common/Avatar';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useStudySync } from '../../context/StudySyncContext';
 
 const themeOptions = [
-  { id: 'violet', label: 'Violet Indigo', color: '#6366f1' },
+  { id: 'violet', label: 'Violet (Default)', color: '#6366f1' },
   { id: 'teal', label: 'Emerald Teal', color: '#0d9488' },
   { id: 'rose', label: 'Sunset Rose', color: '#e11d48' },
   { id: 'amber', label: 'Amber Gold', color: '#d97706' },
   { id: 'cyan', label: 'Cyan Wave', color: '#0891b2' },
 ];
 
-const avatarBadges = ['🎓', '💻', '🔬', '📚', '🎨', '🚀', '⚡', '🏆'];
+const avatarBadges = ['🎓', '💻', '🔬', '📚', '🎨', '🚀', '⚡', '🏆', '🎯', '🔥'];
 
 export default function ProfileModal({ onClose }) {
-  const { user, updateProfile } = useAuth();
-  const { accent, setAccent } = useTheme();
-  const { showToast } = useStudySync();
+  const { user, updateProfile, logout } = useAuth();
+  const { accent, setAccent, darkMode, toggleDarkMode } = useTheme();
+  const { data, showToast } = useStudySync();
+  const navigate = useNavigate();
 
-  const [tab, setTab] = useState('general');
+  const [tab, setTab] = useState('account');
   const [name, setName] = useState(user?.name || 'Chavan Ravindra');
   const [email, setEmail] = useState(user?.email || 'ravindrachavan265125@gmail.com');
   const [bio, setBio] = useState(user?.bio || '');
@@ -75,46 +78,92 @@ export default function ProfileModal({ onClose }) {
     }
   };
 
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to log out of your StudySync workspace?')) {
+      logout();
+      onClose();
+      showToast('Logged out securely. See you soon! 👋');
+      navigate('/login');
+    }
+  };
+
+  const streak = data.dashboard?.streakCount || user?.streakCount || 0;
+  const productivityScore = data.dashboard?.productivityScore || 85;
+
   return (
     <>
-      <Modal title="Profile & Account Settings" onClose={onClose}>
+      <Modal title="Student Profile & Settings" onClose={onClose}>
+        {/* Top User Overview Summary Card */}
+        <div className="profile-hero-card">
+          <div className="profile-hero-avatar-wrap">
+            <Avatar user={{ ...user, profilePictureUrl, avatarBadge }} />
+            <input
+              type="file"
+              id="quick-photo-change"
+              accept="image/*"
+              onChange={handleModalDevicePhoto}
+              style={{ display: 'none' }}
+            />
+            <label htmlFor="quick-photo-change" className="photo-edit-badge" title="Change profile photo">
+              📷
+            </label>
+          </div>
+
+          <div className="profile-hero-details">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <h3 className="profile-hero-name">{name || 'Student'}</h3>
+              <span className={`role-badge ${user?.role === 'ADMIN' ? 'admin' : 'user'}`}>
+                {user?.role === 'ADMIN' ? '🛡️ ADMIN' : '🎓 STUDENT'}
+              </span>
+            </div>
+            <p className="profile-hero-email">{email}</p>
+            <div className="profile-hero-badges">
+              <span className="hero-stat-pill">🔥 {streak} Day Streak</span>
+              <span className="hero-stat-pill">⚡ {productivityScore}/100 Score</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Switcher */}
         <div className="profile-tabs">
           <button
             type="button"
-            className={`profile-tab-btn ${tab === 'general' ? 'active' : ''}`}
-            onClick={() => setTab('general')}
+            className={`profile-tab-btn ${tab === 'account' ? 'active' : ''}`}
+            onClick={() => setTab('account')}
           >
-            Personal Info
+            👤 Account
           </button>
           <button
             type="button"
             className={`profile-tab-btn ${tab === 'appearance' ? 'active' : ''}`}
             onClick={() => setTab('appearance')}
           >
-            Theme & Avatar
+            🎨 Theme & Avatar
           </button>
           <button
             type="button"
-            className={`profile-tab-btn ${tab === 'preferences' ? 'active' : ''}`}
-            onClick={() => setTab('preferences')}
+            className={`profile-tab-btn ${tab === 'study' ? 'active' : ''}`}
+            onClick={() => setTab('study')}
           >
-            Study Preferences
+            ⚙️ Preferences
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {tab === 'general' && (
-            <>
+        <form onSubmit={handleSubmit} style={{ marginTop: '16px' }}>
+          {/* TAB 1: ACCOUNT DETAILS */}
+          {tab === 'account' && (
+            <div className="profile-tab-content">
               <div className="field-group">
-                <label>Display Name *</label>
+                <label>Full Display Name *</label>
                 <input
                   type="text"
                   className="text-input"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  placeholder="Full Name"
+                  placeholder="e.g. Chavan Ravindra"
                 />
+                <small className="field-help-text">Used on your workspace header and certificates.</small>
               </div>
 
               <div className="field-group">
@@ -127,20 +176,22 @@ export default function ProfileModal({ onClose }) {
                   required
                   placeholder="you@example.com"
                 />
+                <small className="field-help-text">Used for sign-in and recovery notices.</small>
               </div>
 
               <div className="field-group">
-                <label>Bio / Study Target</label>
+                <label>Study Goal / Academic Bio</label>
                 <textarea
                   className="textarea-input"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="e.g. Computer Science major aiming for 3.9 GPA & mastering Spring Boot + React!"
+                  rows="2"
+                  placeholder="e.g. Computer Science student mastering Algorithms & Spring Boot!"
                 />
               </div>
 
               <div className="field-group">
-                <label>Daily Target Study Hours</label>
+                <label>Daily Study Target (Hours)</label>
                 <input
                   type="number"
                   className="text-input"
@@ -150,13 +201,14 @@ export default function ProfileModal({ onClose }) {
                   max="16"
                 />
               </div>
-            </>
+            </div>
           )}
 
+          {/* TAB 2: THEME & AVATAR */}
           {tab === 'appearance' && (
-            <>
+            <div className="profile-tab-content">
               <div className="field-group">
-                <label>Profile Photo (From Device)</label>
+                <label>Profile Picture</label>
                 <div className="file-upload-picker">
                   <input
                     type="file"
@@ -170,12 +222,8 @@ export default function ProfileModal({ onClose }) {
                       <img src={profilePictureUrl} alt="Preview" className="avatar-preview-img" />
                     ) : (
                       <div className="file-upload-placeholder">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                          <circle cx="8.5" cy="8.5" r="1.5"/>
-                          <polyline points="21 15 16 10 5 21"/>
-                        </svg>
-                        <span>Choose image from device</span>
+                        <span style={{ fontSize: '24px' }}>📷</span>
+                        <span>Upload photo from device</span>
                       </div>
                     )}
                   </label>
@@ -183,7 +231,7 @@ export default function ProfileModal({ onClose }) {
                     <button
                       type="button"
                       className="btn-link text-danger"
-                      style={{ marginTop: '8px' }}
+                      style={{ marginTop: '8px', fontSize: '12px' }}
                       onClick={() => setProfilePictureUrl('')}
                     >
                       Remove custom photo
@@ -209,7 +257,7 @@ export default function ProfileModal({ onClose }) {
               </div>
 
               <div className="field-group">
-                <label>Accent Theme Color</label>
+                <label>Theme Accent Color</label>
                 <div className="theme-swatch-grid">
                   {themeOptions.map((opt) => (
                     <button
@@ -224,13 +272,26 @@ export default function ProfileModal({ onClose }) {
                   ))}
                 </div>
               </div>
-            </>
+
+              <div className="field-group">
+                <label>Theme Mode</label>
+                <button
+                  type="button"
+                  className="btn-outline full-width"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  onClick={toggleDarkMode}
+                >
+                  {darkMode ? '☀️ Switch to Light Mode' : '🌙 Switch to Dark Mode'}
+                </button>
+              </div>
+            </div>
           )}
 
-          {tab === 'preferences' && (
-            <>
+          {/* TAB 3: STUDY PREFERENCES */}
+          {tab === 'study' && (
+            <div className="profile-tab-content">
               <div className="field-group">
-                <label>Default Focus Duration</label>
+                <label>Default Pomodoro Interval</label>
                 <select
                   className="select-input"
                   value={defaultFocusMinutes}
@@ -238,7 +299,7 @@ export default function ProfileModal({ onClose }) {
                 >
                   <option value={15}>15 Minutes (Quick Sprint)</option>
                   <option value={25}>25 Minutes (Standard Pomodoro)</option>
-                  <option value={50}>50 Minutes (Deep Work)</option>
+                  <option value={50}>50 Minutes (Deep Work Flow)</option>
                   <option value={90}>90 Minutes (Intensive Study)</option>
                 </select>
               </div>
@@ -249,7 +310,7 @@ export default function ProfileModal({ onClose }) {
                   checked={enableReminders}
                   onChange={(e) => setEnableReminders(e.target.checked)}
                 />
-                <span>Enable daily study notifications and overdue alerts</span>
+                <span>Daily study notifications & overdue task alerts</span>
               </label>
 
               <label className="checkbox-field" style={{ marginBottom: '20px' }}>
@@ -258,14 +319,25 @@ export default function ProfileModal({ onClose }) {
                   checked={soundEnabled}
                   onChange={(e) => setSoundEnabled(e.target.checked)}
                 />
-                <span>Play audio chime when Pomodoro focus session finishes</span>
+                <span>Play completion audio chime when Pomodoro timer ends</span>
               </label>
-            </>
+            </div>
           )}
 
-          <button className="btn-primary full-width modal-submit" type="submit" disabled={saving}>
-            {saving ? 'Saving...' : 'Save Profile & Settings ✨'}
-          </button>
+          {/* Action Buttons */}
+          <div className="profile-modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '20px', flexDirection: 'column' }}>
+            <button className="btn-primary full-width" type="submit" disabled={saving}>
+              {saving ? 'Saving...' : 'Save Profile & Settings ✨'}
+            </button>
+
+            <button
+              type="button"
+              className="btn-danger-outline full-width"
+              onClick={handleLogout}
+            >
+              🚪 Log Out of StudySync
+            </button>
+          </div>
         </form>
       </Modal>
 
