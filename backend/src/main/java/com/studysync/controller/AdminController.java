@@ -58,8 +58,9 @@ public class AdminController {
         categories.deleteByUser(u);
         statistics.deleteByUser(u);
 
-        // Delete user record from database
+        // Delete user record from database permanently
         users.delete(u);
+        users.flush();
     }
 
     @Transactional
@@ -73,11 +74,12 @@ public class AdminController {
         categories.deleteAll();
         statistics.deleteAll();
 
-        // Delete all non-ADMIN accounts
+        // Delete all non-ADMIN accounts permanently
         List<User> toDelete = users.findAll().stream()
             .filter(u -> u.getRole() != Role.ADMIN)
             .toList();
         users.deleteAll(toDelete);
+        users.flush();
     }
 
     @GetMapping("/dashboard")
