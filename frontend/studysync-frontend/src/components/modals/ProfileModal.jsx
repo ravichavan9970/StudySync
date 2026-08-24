@@ -8,14 +8,14 @@ import { useTheme } from '../../context/ThemeContext';
 import { useStudySync } from '../../context/StudySyncContext';
 
 const themeOptions = [
-  { id: 'violet', label: 'Violet (Default)', color: '#6366f1' },
-  { id: 'teal', label: 'Emerald Teal', color: '#0d9488' },
-  { id: 'rose', label: 'Sunset Rose', color: '#e11d48' },
-  { id: 'amber', label: 'Amber Gold', color: '#d97706' },
-  { id: 'cyan', label: 'Cyan Wave', color: '#0891b2' },
+  { id: 'violet', label: 'Violet', color: '#6366f1' },
+  { id: 'teal', label: 'Teal', color: '#0d9488' },
+  { id: 'rose', label: 'Rose', color: '#e11d48' },
+  { id: 'amber', label: 'Amber', color: '#d97706' },
+  { id: 'cyan', label: 'Cyan', color: '#0891b2' },
 ];
 
-const avatarBadges = ['🎓', '💻', '🔬', '📚', '🎨', '🚀', '⚡', '🏆', '🎯', '🔥'];
+const avatarBadges = ['🎓', '💻', '🔬', '📚', '🚀', '⚡', '🏆', '🔥'];
 
 export default function ProfileModal({ onClose }) {
   const { user, updateProfile, logout } = useAuth();
@@ -69,7 +69,7 @@ export default function ProfileModal({ onClose }) {
         enableReminders,
         soundEnabled,
       });
-      showToast('Profile & preferences saved successfully! ✨');
+      showToast('Profile saved! ✨');
       onClose();
     } catch (err) {
       showToast(err.message);
@@ -79,22 +79,36 @@ export default function ProfileModal({ onClose }) {
   };
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to log out of your StudySync workspace?')) {
+    if (window.confirm('Log out of StudySync?')) {
       logout();
       onClose();
-      showToast('Logged out securely. See you soon! 👋');
+      showToast('Logged out securely 👋');
       navigate('/login');
     }
   };
 
   const streak = data.dashboard?.streakCount || user?.streakCount || 0;
-  const productivityScore = data.dashboard?.productivityScore || 85;
 
   return (
     <>
-      <Modal title="Student Profile & Settings" onClose={onClose}>
-        {/* Top User Overview Summary Card */}
-        <div className="profile-hero-card">
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: '8px' }}>
+            <span>Profile & Settings</span>
+            <button
+              type="button"
+              className="btn-danger-xs"
+              onClick={handleLogout}
+              title="Sign out of account"
+            >
+              🚪 Logout
+            </button>
+          </div>
+        }
+        onClose={onClose}
+      >
+        {/* Compact User Identity Strip */}
+        <div className="profile-compact-header">
           <div className="profile-hero-avatar-wrap">
             <Avatar user={{ ...user, profilePictureUrl, avatarBadge }} />
             <input
@@ -104,28 +118,27 @@ export default function ProfileModal({ onClose }) {
               onChange={handleModalDevicePhoto}
               style={{ display: 'none' }}
             />
-            <label htmlFor="quick-photo-change" className="photo-edit-badge" title="Change profile photo">
+            <label htmlFor="quick-photo-change" className="photo-edit-badge" title="Change photo">
               📷
             </label>
           </div>
 
           <div className="profile-hero-details">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <h3 className="profile-hero-name">{name || 'Student'}</h3>
-              <span className={`role-badge ${user?.role === 'ADMIN' ? 'admin' : 'user'}`}>
-                {user?.role === 'ADMIN' ? '🛡️ ADMIN' : '🎓 STUDENT'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <strong className="profile-hero-name">{name || 'Student'}</strong>
+              <span className={`role-badge ${user?.role === 'ADMIN' ? 'admin' : 'user'}`} style={{ fontSize: '9px', padding: '1px 5px' }}>
+                {user?.role === 'ADMIN' ? 'ADMIN' : 'STUDENT'}
               </span>
             </div>
             <p className="profile-hero-email">{email}</p>
             <div className="profile-hero-badges">
-              <span className="hero-stat-pill">🔥 {streak} Day Streak</span>
-              <span className="hero-stat-pill">⚡ {productivityScore}/100 Score</span>
+              <span className="hero-stat-pill">🔥 {streak}d streak</span>
             </div>
           </div>
         </div>
 
         {/* Tab Switcher */}
-        <div className="profile-tabs">
+        <div className="profile-tabs compact">
           <button
             type="button"
             className={`profile-tab-btn ${tab === 'account' ? 'active' : ''}`}
@@ -138,7 +151,7 @@ export default function ProfileModal({ onClose }) {
             className={`profile-tab-btn ${tab === 'appearance' ? 'active' : ''}`}
             onClick={() => setTab('appearance')}
           >
-            🎨 Theme & Avatar
+            🎨 Appearance
           </button>
           <button
             type="button"
@@ -149,25 +162,24 @@ export default function ProfileModal({ onClose }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ marginTop: '16px' }}>
+        <form onSubmit={handleSubmit} style={{ marginTop: '10px' }}>
           {/* TAB 1: ACCOUNT DETAILS */}
           {tab === 'account' && (
             <div className="profile-tab-content">
-              <div className="field-group">
-                <label>Full Display Name *</label>
+              <div className="field-group compact">
+                <label>Display Name</label>
                 <input
                   type="text"
                   className="text-input"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  placeholder="e.g. Chavan Ravindra"
+                  placeholder="Full Name"
                 />
-                <small className="field-help-text">Used on your workspace header and certificates.</small>
               </div>
 
-              <div className="field-group">
-                <label>Email Address *</label>
+              <div className="field-group compact">
+                <label>Email Address</label>
                 <input
                   type="email"
                   className="text-input"
@@ -176,21 +188,20 @@ export default function ProfileModal({ onClose }) {
                   required
                   placeholder="you@example.com"
                 />
-                <small className="field-help-text">Used for sign-in and recovery notices.</small>
               </div>
 
-              <div className="field-group">
-                <label>Study Goal / Academic Bio</label>
-                <textarea
-                  className="textarea-input"
+              <div className="field-group compact">
+                <label>Academic Goal / Bio</label>
+                <input
+                  type="text"
+                  className="text-input"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  rows="2"
-                  placeholder="e.g. Computer Science student mastering Algorithms & Spring Boot!"
+                  placeholder="e.g. CS Student mastering Spring Boot"
                 />
               </div>
 
-              <div className="field-group">
+              <div className="field-group compact">
                 <label>Daily Study Target (Hours)</label>
                 <input
                   type="number"
@@ -204,44 +215,11 @@ export default function ProfileModal({ onClose }) {
             </div>
           )}
 
-          {/* TAB 2: THEME & AVATAR */}
+          {/* TAB 2: APPEARANCE */}
           {tab === 'appearance' && (
             <div className="profile-tab-content">
-              <div className="field-group">
-                <label>Profile Picture</label>
-                <div className="file-upload-picker">
-                  <input
-                    type="file"
-                    id="modal-device-pic"
-                    accept="image/*"
-                    onChange={handleModalDevicePhoto}
-                    style={{ display: 'none' }}
-                  />
-                  <label htmlFor="modal-device-pic" className="file-upload-btn">
-                    {profilePictureUrl ? (
-                      <img src={profilePictureUrl} alt="Preview" className="avatar-preview-img" />
-                    ) : (
-                      <div className="file-upload-placeholder">
-                        <span style={{ fontSize: '24px' }}>📷</span>
-                        <span>Upload photo from device</span>
-                      </div>
-                    )}
-                  </label>
-                  {profilePictureUrl && (
-                    <button
-                      type="button"
-                      className="btn-link text-danger"
-                      style={{ marginTop: '8px', fontSize: '12px' }}
-                      onClick={() => setProfilePictureUrl('')}
-                    >
-                      Remove custom photo
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="field-group">
-                <label>Avatar Badge Emoji</label>
+              <div className="field-group compact">
+                <label>Avatar Badge</label>
                 <div className="avatar-picker-grid">
                   {avatarBadges.map((badge) => (
                     <button
@@ -256,8 +234,8 @@ export default function ProfileModal({ onClose }) {
                 </div>
               </div>
 
-              <div className="field-group">
-                <label>Theme Accent Color</label>
+              <div className="field-group compact">
+                <label>Theme Accent</label>
                 <div className="theme-swatch-grid">
                   {themeOptions.map((opt) => (
                     <button
@@ -273,12 +251,11 @@ export default function ProfileModal({ onClose }) {
                 </div>
               </div>
 
-              <div className="field-group">
-                <label>Theme Mode</label>
+              <div className="field-group compact">
+                <label>Mode</label>
                 <button
                   type="button"
-                  className="btn-outline full-width"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  className="btn-outline full-width btn-sm"
                   onClick={toggleDarkMode}
                 >
                   {darkMode ? '☀️ Switch to Light Mode' : '🌙 Switch to Dark Mode'}
@@ -290,52 +267,52 @@ export default function ProfileModal({ onClose }) {
           {/* TAB 3: STUDY PREFERENCES */}
           {tab === 'study' && (
             <div className="profile-tab-content">
-              <div className="field-group">
-                <label>Default Pomodoro Interval</label>
+              <div className="field-group compact">
+                <label>Default Focus Duration</label>
                 <select
                   className="select-input"
                   value={defaultFocusMinutes}
                   onChange={(e) => setDefaultFocusMinutes(Number(e.target.value))}
                 >
-                  <option value={15}>15 Minutes (Quick Sprint)</option>
-                  <option value={25}>25 Minutes (Standard Pomodoro)</option>
-                  <option value={50}>50 Minutes (Deep Work Flow)</option>
-                  <option value={90}>90 Minutes (Intensive Study)</option>
+                  <option value={15}>15 Minutes (Sprint)</option>
+                  <option value={25}>25 Minutes (Standard)</option>
+                  <option value={50}>50 Minutes (Deep Flow)</option>
+                  <option value={90}>90 Minutes (Intensive)</option>
                 </select>
               </div>
 
-              <label className="checkbox-field" style={{ marginBottom: '14px' }}>
+              <label className="checkbox-field" style={{ marginBottom: '8px', fontSize: '12px' }}>
                 <input
                   type="checkbox"
                   checked={enableReminders}
                   onChange={(e) => setEnableReminders(e.target.checked)}
                 />
-                <span>Daily study notifications & overdue task alerts</span>
+                <span>Daily notifications & overdue alerts</span>
               </label>
 
-              <label className="checkbox-field" style={{ marginBottom: '20px' }}>
+              <label className="checkbox-field" style={{ marginBottom: '12px', fontSize: '12px' }}>
                 <input
                   type="checkbox"
                   checked={soundEnabled}
                   onChange={(e) => setSoundEnabled(e.target.checked)}
                 />
-                <span>Play completion audio chime when Pomodoro timer ends</span>
+                <span>Play chime when Pomodoro timer ends</span>
               </label>
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="profile-modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '20px', flexDirection: 'column' }}>
-            <button className="btn-primary full-width" type="submit" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Profile & Settings ✨'}
+          {/* Action Row */}
+          <div className="modal-footer-actions">
+            <button className="btn-primary flex-1" type="submit" disabled={saving}>
+              {saving ? 'Saving...' : 'Save Settings ✨'}
             </button>
-
             <button
               type="button"
-              className="btn-danger-outline full-width"
+              className="btn-danger-outline"
               onClick={handleLogout}
+              title="Logout"
             >
-              🚪 Log Out of StudySync
+              🚪 Logout
             </button>
           </div>
         </form>
