@@ -32,8 +32,6 @@ export default function ProfileModal({ onClose }) {
   const [avatarBadge, setAvatarBadge] = useState(user?.avatarBadge || '🎓');
   const [profilePictureUrl, setProfilePictureUrl] = useState(user?.profilePictureUrl || '');
   const [cropperSrc, setCropperSrc] = useState(null);
-  const [defaultFocusMinutes, setDefaultFocusMinutes] = useState(user?.defaultFocusMinutes || 25);
-  const [enableReminders, setEnableReminders] = useState(user?.enableReminders ?? true);
   const [saving, setSaving] = useState(false);
 
   React.useEffect(() => {
@@ -76,9 +74,6 @@ export default function ProfileModal({ onClose }) {
         theme,
         avatarBadge,
         profilePictureUrl,
-        defaultFocusMinutes: Number(defaultFocusMinutes),
-        enableReminders,
-        soundEnabled,
       });
       showToast('Profile saved! ✨');
       onClose();
