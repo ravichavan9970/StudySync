@@ -34,11 +34,14 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       const userData = await api('/users/me', { token: activeToken });
-      const savedName = localStorage.getItem('studysync-user-name');
-      if (savedName && (!userData.name || userData.name === 'Student')) {
-        userData.name = savedName;
+      if (userData) {
+        userData.profilePictureUrl = resolveImageUrl(userData.profilePictureUrl);
+        const savedName = localStorage.getItem('studysync-user-name');
+        if (savedName && (!userData.name || userData.name === 'Student')) {
+          userData.name = savedName;
+        }
+        setUser(userData);
       }
-      setUser(userData);
       return userData;
     } catch (err) {
       if (err.status === 401 || err.status === 403) {

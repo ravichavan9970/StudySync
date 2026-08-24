@@ -11,10 +11,14 @@ const STORAGE_KEYS = {
   SESSIONS: 'studysync_demo_sessions',
 };
 
-// Helper to resolve and trim image URLs
+// Helper to resolve and trim image URLs (blocks legacy placeholder photos)
 export function resolveImageUrl(url) {
   if (!url) return '';
-  return url.trim();
+  const trimmed = url.trim();
+  if (trimmed.includes('postimg.cc') || trimmed.includes('Ravindra-Chavan') || trimmed.includes('jnfsz2XN')) {
+    return '';
+  }
+  return trimmed;
 }
 
 // Get current saved user name or default to Student
