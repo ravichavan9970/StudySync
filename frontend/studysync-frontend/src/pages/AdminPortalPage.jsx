@@ -39,17 +39,20 @@ export default function AdminPortalPage() {
 
       // 2. Fetch users list
       const usersData = await api('/admin/users?page=0&size=100', { token }).catch(() => null);
+      let combined = [];
       if (usersData && Array.isArray(usersData.content)) {
-        setUsersList(usersData.content);
-      } else {
-        try {
-          const map = JSON.parse(localStorage.getItem('studysync_users_map') || '{}');
-          const localList = Object.values(map).filter((u) => u && u.email);
-          setUsersList(localList);
-        } catch {
-          setUsersList([]);
-        }
+        combined = [...usersData.content];
       }
+      try {
+        const map = JSON.parse(localStorage.getItem('studysync_users_map') || '{}');
+        const localList = Object.values(map).filter((u) => u && u.email);
+        localList.forEach((lu) => {
+          if (!combined.some((cu) => cu.email?.toLowerCase() === lu.email?.toLowerCase() || (cu.id && cu.id === lu.id))) {
+            combined.push(lu);
+          }
+        });
+      } catch {}
+      setUsersList(combined);
     } catch (err) {
       showToast(`Admin sync notice: ${err.message}`);
     } finally {
