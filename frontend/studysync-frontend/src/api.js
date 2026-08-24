@@ -107,11 +107,61 @@ export const CloudSync = {
           usersMap[em] = { ...usersMap[em], ...u };
           setStored(STORAGE_KEYS.USERS_MAP, usersMap);
 
-          if (Array.isArray(u.tasks)) setStored(`${STORAGE_KEYS.TASKS}_${em}`, u.tasks);
-          if (Array.isArray(u.notes)) setStored(`${STORAGE_KEYS.NOTES}_${em}`, u.notes);
-          if (Array.isArray(u.subjects)) setStored(`${STORAGE_KEYS.SUBJECTS}_${em}`, u.subjects);
-          if (Array.isArray(u.categories)) setStored(`${STORAGE_KEYS.CATEGORIES}_${em}`, u.categories);
-          if (Array.isArray(u.sessions)) setStored(`${STORAGE_KEYS.SESSIONS}_${em}`, u.sessions);
+          // Intelligent merge by ID so newly created & completed tasks are NEVER lost or overwritten!
+          if (Array.isArray(u.tasks)) {
+            const localTasks = getStored(`${STORAGE_KEYS.TASKS}_${em}`, []);
+            const taskMap = new Map();
+            u.tasks.forEach((t) => { if (t && t.id) taskMap.set(t.id, t); });
+            localTasks.forEach((t) => {
+              if (t && t.id) {
+                const cloudTask = taskMap.get(t.id);
+                if (!cloudTask) {
+                  taskMap.set(t.id, t);
+                } else {
+                  const isCompleted = t.status === 'COMPLETED' || cloudTask.status === 'COMPLETED';
+                  taskMap.set(t.id, {
+                    ...cloudTask,
+                    ...t,
+                    status: isCompleted ? 'COMPLETED' : t.status,
+                    completedAt: t.completedAt || cloudTask.completedAt,
+                  });
+                }
+              }
+            });
+            setStored(`${STORAGE_KEYS.TASKS}_${em}`, Array.from(taskMap.values()));
+          }
+
+          if (Array.isArray(u.notes)) {
+            const localNotes = getStored(`${STORAGE_KEYS.NOTES}_${em}`, []);
+            const noteMap = new Map();
+            u.notes.forEach((n) => { if (n && n.id) noteMap.set(n.id, n); });
+            localNotes.forEach((n) => { if (n && n.id) noteMap.set(n.id, { ...(noteMap.get(n.id) || {}), ...n }); });
+            setStored(`${STORAGE_KEYS.NOTES}_${em}`, Array.from(noteMap.values()));
+          }
+
+          if (Array.isArray(u.subjects)) {
+            const localSubs = getStored(`${STORAGE_KEYS.SUBJECTS}_${em}`, []);
+            const subMap = new Map();
+            u.subjects.forEach((s) => { if (s && s.id) subMap.set(s.id, s); });
+            localSubs.forEach((s) => { if (s && s.id) subMap.set(s.id, { ...(subMap.get(s.id) || {}), ...s }); });
+            setStored(`${STORAGE_KEYS.SUBJECTS}_${em}`, Array.from(subMap.values()));
+          }
+
+          if (Array.isArray(u.categories)) {
+            const localCats = getStored(`${STORAGE_KEYS.CATEGORIES}_${em}`, []);
+            const catMap = new Map();
+            u.categories.forEach((c) => { if (c && c.id) catMap.set(c.id, c); });
+            localCats.forEach((c) => { if (c && c.id) catMap.set(c.id, { ...(catMap.get(c.id) || {}), ...c }); });
+            setStored(`${STORAGE_KEYS.CATEGORIES}_${em}`, Array.from(catMap.values()));
+          }
+
+          if (Array.isArray(u.sessions)) {
+            const localSessions = getStored(`${STORAGE_KEYS.SESSIONS}_${em}`, []);
+            const sessMap = new Map();
+            u.sessions.forEach((s) => { if (s && s.id) sessMap.set(s.id, s); });
+            localSessions.forEach((s) => { if (s && s.id) sessMap.set(s.id, { ...(sessMap.get(s.id) || {}), ...s }); });
+            setStored(`${STORAGE_KEYS.SESSIONS}_${em}`, Array.from(sessMap.values()));
+          }
 
           const currentUser = getStored(STORAGE_KEYS.USER, null);
           if (currentUser && currentUser.email?.toLowerCase() === em) {

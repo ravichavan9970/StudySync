@@ -155,13 +155,17 @@ export function StudySyncProvider({ children }) {
         method: form.task.id ? 'PUT' : 'POST',
         body: JSON.stringify({ ...form.task, categoryId, subjectId: form.subjectId || null })
       });
-      setData((old) => ({
-        ...old,
-        tasks: form.task.id ? old.tasks.map((task) => (task.id === saved.id ? saved : task)) : [...old.tasks, saved]
-      }));
+      if (saved) {
+        setData((old) => ({
+          ...old,
+          tasks: form.task.id
+            ? old.tasks.map((task) => (task.id === saved.id ? saved : task))
+            : [saved, ...old.tasks.filter((t) => t.id !== saved.id)]
+        }));
+        if (user?.email) syncUserDataToCloud(user.email);
+      }
       setTaskModal(null);
       showToast(form.task.id ? 'Task updated successfully! ✨' : 'Task created successfully! 📝');
-      reloadData();
     } catch (error) {
       showToast(error.message);
     }
@@ -170,12 +174,33 @@ export function StudySyncProvider({ children }) {
   const toggleTask = async (task) => {
     try {
       const isNowCompleted = task.status !== 'COMPLETED';
-      const saved = await request(`/tasks/${task.id}/complete?completed=${isNowCompleted}`, { method: 'PATCH' });
+      const updatedStatus = isNowCompleted ? 'COMPLETED' : 'PENDING';
+      const updatedTask = {
+        ...task,
+        status: updatedStatus,
+        completedAt: isNowCompleted ? new Date().toISOString() : null,
+      };
+
+      // Optimistic UI update so task status changes instantly without flickering
       setData((old) => ({
         ...old,
-        tasks: old.tasks.map((item) => (item.id === saved.id ? saved : item))
+        tasks: old.tasks.map((item) => (item.id === task.id ? updatedTask : item))
       }));
-      reloadData();
+
+      const saved = await request(`/tasks/${task.id}/complete?completed=${isNowCompleted}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ completed: isNowCompleted, status: updatedStatus })
+      });
+
+      if (saved) {
+        setData((old) => ({
+          ...old,
+          tasks: old.tasks.map((item) => (item.id === saved.id ? saved : item))
+        }));
+      }
+
+      if (user?.email) syncUserDataToCloud(user.email);
+      showToast(isNowCompleted ? 'Task marked as COMPLETED! 🎉' : 'Task marked as pending ⏳');
     } catch (error) {
       showToast(error.message);
     }
@@ -186,8 +211,8 @@ export function StudySyncProvider({ children }) {
     try {
       await request(`/tasks/${taskId}`, { method: 'DELETE' });
       setData((old) => ({ ...old, tasks: old.tasks.filter((item) => item.id !== taskId) }));
+      if (user?.email) syncUserDataToCloud(user.email);
       showToast('Task deleted.');
-      reloadData();
     } catch (error) {
       showToast(error.message);
     }
@@ -207,13 +232,17 @@ export function StudySyncProvider({ children }) {
         method: form.note.id ? 'PUT' : 'POST',
         body: JSON.stringify({ ...form.note, categoryId, subjectId: form.subjectId || null })
       });
-      setData((old) => ({
-        ...old,
-        notes: form.note.id ? old.notes.map((item) => (item.id === saved.id ? saved : item)) : [saved, ...old.notes]
-      }));
+      if (saved) {
+        setData((old) => ({
+          ...old,
+          notes: form.note.id
+            ? old.notes.map((item) => (item.id === saved.id ? saved : item))
+            : [saved, ...old.notes.filter((n) => n.id !== saved.id)]
+        }));
+        if (user?.email) syncUserDataToCloud(user.email);
+      }
       setNoteModal(null);
       showToast(form.note.id ? 'Note updated! ✨' : 'Note saved! 📚');
-      reloadData();
     } catch (error) {
       showToast(error.message);
     }
@@ -231,10 +260,13 @@ export function StudySyncProvider({ children }) {
           pinned: patch.pinned ?? note.pinned
         })
       });
-      setData((old) => ({
-        ...old,
-        notes: old.notes.map((item) => (item.id === saved.id ? saved : item))
-      }));
+      if (saved) {
+        setData((old) => ({
+          ...old,
+          notes: old.notes.map((item) => (item.id === saved.id ? saved : item))
+        }));
+        if (user?.email) syncUserDataToCloud(user.email);
+      }
     } catch (error) {
       showToast(error.message);
     }
@@ -243,12 +275,14 @@ export function StudySyncProvider({ children }) {
   const archiveNote = async (note) => {
     try {
       const saved = await request(`/notes/${note.id}/archive?archived=${!note.archived}`, { method: 'PATCH' });
-      setData((old) => ({
-        ...old,
-        notes: old.notes.map((item) => (item.id === saved.id ? saved : item))
-      }));
-      showToast(saved.archived ? 'Note moved to archive 📦' : 'Note restored from archive 📂');
-      reloadData();
+      if (saved) {
+        setData((old) => ({
+          ...old,
+          notes: old.notes.map((item) => (item.id === saved.id ? saved : item))
+        }));
+        if (user?.email) syncUserDataToCloud(user.email);
+      }
+      showToast(saved?.archived ? 'Note moved to archive 📦' : 'Note restored from archive 📂');
     } catch (error) {
       showToast(error.message);
     }
@@ -259,8 +293,7 @@ export function StudySyncProvider({ children }) {
     try {
       await request(`/notes/${note.id}`, { method: 'DELETE' });
       setData((old) => ({ ...old, notes: old.notes.filter((item) => item.id !== note.id) }));
-      showToast('Note deleted.');
-      reloadData();
+      if (user?.email) syncUserDataToCloud(user.email);
     } catch (error) {
       showToast(error.message);
     }
