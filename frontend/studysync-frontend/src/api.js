@@ -556,7 +556,16 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
   if (cleanPath.startsWith('/admin/users/') && method === 'DELETE') {
     const uid = cleanPath.split('/')[3];
     delete usersMap[uid];
+    Object.keys(usersMap).forEach((k) => {
+      if (usersMap[k]?.id === uid || usersMap[k]?.email === uid) {
+        delete usersMap[k];
+      }
+    });
     setStored(STORAGE_KEYS.USERS_MAP, usersMap);
+    if (Object.keys(usersMap).length === 0) {
+      localStorage.removeItem(STORAGE_KEYS.USER);
+      localStorage.removeItem('studysync-user-name');
+    }
     return null;
   }
 

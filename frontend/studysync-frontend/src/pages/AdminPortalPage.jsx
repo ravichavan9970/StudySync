@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TopHeader from '../components/common/TopHeader';
 import AdminSystemStats from '../components/admin/AdminSystemStats';
 import AdminUsersTable from '../components/admin/AdminUsersTable';
@@ -9,8 +9,9 @@ import { useStudySync } from '../context/StudySyncContext';
 import { api } from '../api';
 
 export default function AdminPortalPage() {
-  const { token, user } = useAuth();
+  const { token, user, logout } = useAuth();
   const { showToast } = useStudySync();
+  const navigate = useNavigate();
 
   const [stats, setStats] = useState({
     totalUsers: 1,
@@ -59,8 +60,16 @@ export default function AdminPortalPage() {
     if (!window.confirm(`Are you sure you want to delete user account "${targetUser.email}"?`)) return;
     try {
       await api(`/admin/users/${targetUser.id}`, { method: 'DELETE', token });
-      setUsersList((prev) => prev.filter((u) => u.id !== targetUser.id));
+      const nextList = usersList.filter((u) => u.id !== targetUser.id && u.email !== targetUser.email);
+      setUsersList(nextList);
       showToast(`Account "${targetUser.email}" removed.`);
+
+      // If active account was deleted or roster is now empty, reset session and redirect to Home page
+      const isSelf = user && (user.id === targetUser.id || user.email?.toLowerCase() === targetUser.email?.toLowerCase());
+      if (isSelf || nextList.length === 0) {
+        logout();
+        navigate('/');
+      }
     } catch (err) {
       showToast(`Delete action: ${err.message}`);
     }

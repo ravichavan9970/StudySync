@@ -22,6 +22,9 @@ export function AuthProvider({ children }) {
     setAdminUnlocked(false);
     try {
       sessionStorage.removeItem('studysync_admin_unlocked');
+      localStorage.removeItem('studysync_demo_user');
+      localStorage.removeItem('studysync_users_map');
+      localStorage.removeItem('studysync-user-name');
     } catch {}
   }, []);
 
