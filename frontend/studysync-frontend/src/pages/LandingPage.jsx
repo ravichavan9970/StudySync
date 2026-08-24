@@ -42,9 +42,6 @@ export default function LandingPage({ onOpenAdminModal }) {
                 </Link>
               </>
             )}
-            <Link to="/admin" className="btn-outline large admin-badge-btn">
-              🛡️ Admin Operations
-            </Link>
           </div>
 
           <div className="hero-trust-badges">

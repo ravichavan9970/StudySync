@@ -71,11 +71,13 @@ const navigationItems = [
 ];
 
 export default function Sidebar() {
-  const { user, logout } = useAuth();
+  const { user, adminUnlocked, logout } = useAuth();
   const { setProfileModalOpen } = useStudySync();
   const navigate = useNavigate();
 
   const name = user?.name || 'Student';
+  const isAdmin = user?.role === 'ADMIN' || adminUnlocked === true;
+  const visibleNavItems = navigationItems.filter((item) => item.to !== '/admin' || isAdmin);
 
   return (
     <aside className="sidebar">
@@ -87,7 +89,7 @@ export default function Sidebar() {
       </Link>
 
       <nav>
-        {navigationItems.map(({ to, label, icon }) => (
+        {visibleNavItems.map(({ to, label, icon }) => (
           <NavLink
             key={to}
             to={to}

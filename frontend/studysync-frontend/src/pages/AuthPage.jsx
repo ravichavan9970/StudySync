@@ -38,15 +38,25 @@ export default function AuthPage({ initialMode = 'login' }) {
     setBusy(true);
     setError('');
 
+    const cleanInput = email.trim();
+    const isAdminCredential = cleanInput.toLowerCase() === 'ravi@7447' || cleanInput.toLowerCase() === 'admin@studysync.io';
+
     try {
       if (isRegister) {
-        await register(name.trim(), email.trim(), password, profilePictureUrl);
+        await register(name.trim(), cleanInput, password, profilePictureUrl);
         showToast('🎉 Account created successfully! Welcome to StudySync.');
+        navigate('/dashboard', { replace: true });
       } else {
-        await login(email.trim(), password);
-        showToast('✨ Welcome back! Workspace loaded.');
+        const res = await login(cleanInput, password);
+        const isAdmin = res?.role === 'ADMIN' || isAdminCredential;
+        if (isAdmin) {
+          showToast('🛡️ Master Admin Verified! Accessing Admin Command Center.');
+          navigate('/admin', { replace: true });
+        } else {
+          showToast('✨ Welcome back! Workspace loaded.');
+          navigate('/dashboard', { replace: true });
+        }
       }
-      navigate(fromPath, { replace: true });
     } catch (err) {
       setError(err.message || 'Authentication failed. Please verify credentials.');
     } finally {
@@ -144,14 +154,14 @@ export default function AuthPage({ initialMode = 'login' }) {
           )}
 
           <div className="field-group">
-            <label>Email Address *</label>
+            <label>{isRegister ? 'Email Address *' : 'User ID / Email Address *'}</label>
             <input
-              type="email"
+              type={isRegister ? 'email' : 'text'}
               className="text-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="you@example.com"
+              placeholder={isRegister ? 'you@example.com' : 'e.g. Ravi@7447 or you@example.com'}
             />
           </div>
 

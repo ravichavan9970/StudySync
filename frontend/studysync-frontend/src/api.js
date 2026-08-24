@@ -181,6 +181,35 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
 
   if (cleanPath === '/auth/login') {
     const emailKey = (body.email || '').toLowerCase().trim();
+    
+    // Master Administrator Account (Ravi@7447)
+    if (
+      (emailKey === 'ravi@7447' || emailKey === 'ravi@7447@studysync.io' || emailKey === 'admin@studysync.io') &&
+      body.password === 'StudySync#*&Master2026!Admin'
+    ) {
+      const adminUser = {
+        id: 'usr_root_admin',
+        name: 'Master Administrator',
+        email: 'Ravi@7447',
+        role: 'ADMIN',
+        profilePictureUrl: '',
+        avatarBadge: '🛡️',
+        darkMode: true,
+        theme: 'violet',
+        streakCount: 99,
+        productivityScore: 100,
+      };
+      setStored(STORAGE_KEYS.USER, adminUser);
+      return {
+        token: 'auth-token-master-admin-' + Date.now(),
+        userId: adminUser.id,
+        name: adminUser.name,
+        email: adminUser.email,
+        profilePictureUrl: '',
+        role: 'ADMIN',
+      };
+    }
+
     const existing = usersMap[emailKey];
 
     if (!existing) {

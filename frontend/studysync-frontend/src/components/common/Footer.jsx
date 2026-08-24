@@ -27,7 +27,7 @@ export default function Footer() {
           <strong>Tools</strong>
           <Link to="/focus">Focus Room</Link>
           <Link to="/analytics">Analytics</Link>
-          <Link to="/admin">Admin Portal</Link>
+          <Link to="/login">Student Sign In</Link>
         </div>
 
         <div className="footer-links-col">

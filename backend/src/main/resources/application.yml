@@ -47,7 +47,7 @@ app:
   upload-dir: ${UPLOAD_DIR:./uploads}
   admin:
     passcode: ${ADMIN_PASSCODE:StudySync#*&Master2026!Admin}
-    email: ${ADMIN_EMAIL:admin@studysync.io}
+    email: ${ADMIN_EMAIL:Ravi@7447}
     password: ${ADMIN_PASSWORD:StudySync#*&Master2026!Admin}
 springdoc:
   swagger-ui:

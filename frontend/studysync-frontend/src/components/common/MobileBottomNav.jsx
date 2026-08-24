@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const navTabs = [
   {
@@ -68,10 +69,14 @@ const navTabs = [
 ];
 
 export default function MobileBottomNav() {
+  const { user, adminUnlocked } = useAuth();
+  const isAdmin = user?.role === 'ADMIN' || adminUnlocked === true;
+  const visibleTabs = navTabs.filter((tab) => tab.to !== '/admin' || isAdmin);
+
   return (
     <nav className="mobile-bottom-nav" aria-label="Mobile Bottom Navigation">
       <div className="mobile-nav-inner">
-        {navTabs.map(({ to, label, icon }) => (
+        {visibleTabs.map(({ to, label, icon }) => (
           <NavLink
             key={to}
             to={to}
