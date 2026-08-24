@@ -18,4 +18,5 @@ public interface TaskRepository extends JpaRepository<Task,UUID>{
   List<Task> findByUserAndStatusAndDueDate(User user,TaskStatus status,LocalDate date);
   @EntityGraph(attributePaths="category")
   List<Task> findByUserAndDueDateBetweenOrderByDueDateAsc(User user,LocalDate from,LocalDate to);
+  void deleteByUser(User user);
 }

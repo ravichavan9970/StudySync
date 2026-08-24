@@ -7,4 +7,5 @@ import java.util.*;
 public interface StudySessionRepository extends JpaRepository<StudySession,UUID>{
  @Query("select coalesce(sum(s.completedMinutes),0) from StudySession s where s.user=:user and s.startedAt between :from and :to") Integer sumMinutes(@Param("user") User user,@Param("from") Instant from,@Param("to") Instant to);
  List<StudySession> findTop20ByUserOrderByStartedAtDesc(User user);
+ void deleteByUser(User user);
 }

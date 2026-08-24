@@ -1,4 +1,5 @@
 package com.studysync.controller;
+
 import com.studysync.domain.*;
 import com.studysync.dto.admin.AdminDashboardResponse;
 import com.studysync.dto.user.UserResponse;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -21,6 +23,8 @@ public class AdminController {
     private final NoteRepository notes;
     private final CategoryRepository categories;
     private final StudySessionRepository sessions;
+    private final PasswordResetTokenRepository resetTokens;
+    private final StatisticRepository statistics;
 
     @Value("${app.admin.passcode:StudySync#*&Master2026!Admin}")
     private String adminPasscode;
@@ -39,11 +43,22 @@ public class AdminController {
         return users.findAll(PageRequest.of(Math.max(0, page), Math.max(1, Math.min(100, size)), Sort.by("createdAt").descending())).map(UserResponse::from);
     }
 
+    @Transactional
     @DeleteMapping("/users/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         User u = users.findById(id).orElseThrow(() -> new BadRequestException("User not found"));
         if (u.getRole() == Role.ADMIN) throw new BadRequestException("Admin accounts cannot be deleted through this endpoint");
+
+        // Cascade delete child entities to ensure referential integrity
+        resetTokens.deleteByUser(u);
+        sessions.deleteByUser(u);
+        tasks.deleteByUser(u);
+        notes.deleteByUser(u);
+        categories.deleteByUser(u);
+        statistics.deleteByUser(u);
+
+        // Delete user record from database
         users.delete(u);
     }
 
@@ -79,4 +94,3 @@ public class AdminController {
         return stats;
     }
 }
-
