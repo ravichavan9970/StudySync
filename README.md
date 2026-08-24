@@ -130,7 +130,7 @@ npm run dev
 5. Add a Persistent Disk mounted at `/app/data` (1GB).
 6. Set Environment Variables:
    - `PORT`: `8080`
-   - `SPRING_DATASOURCE_URL`: `jdbc:h2:file:/app/data/studysyncdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;AUTO_SERVER=TRUE`
+   - `SPRING_DATASOURCE_URL`: `jdbc:h2:file:/app/data/studysyncdb;DB_CLOSE_DELAY=-1`
    - `JWT_SECRET`: `your-strong-random-32-byte-secret`
    - `ADMIN_PASSCODE`: `StudySync#*&Master2026!Admin`
 
