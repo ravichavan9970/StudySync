@@ -26,8 +26,6 @@ export default function ProfileModal({ onClose }) {
   const [tab, setTab] = useState('account');
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [bio, setBio] = useState(user?.bio || '');
-  const [dailyTargetHours, setDailyTargetHours] = useState(user?.dailyTargetHours || 4);
   const [theme, setThemeState] = useState(user?.theme || accent || 'violet');
   const [avatarBadge, setAvatarBadge] = useState(user?.avatarBadge || '🎓');
   const [profilePictureUrl, setProfilePictureUrl] = useState(user?.profilePictureUrl || '');
@@ -38,8 +36,6 @@ export default function ProfileModal({ onClose }) {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
-      setBio(user.bio || '');
-      setDailyTargetHours(user.dailyTargetHours || 4);
       setThemeState(user.theme || accent || 'violet');
       setAvatarBadge(user.avatarBadge || '🎓');
       setProfilePictureUrl(user.profilePictureUrl || '');
@@ -69,13 +65,11 @@ export default function ProfileModal({ onClose }) {
       await updateProfile({
         name: name.trim(),
         email: email.trim(),
-        bio: bio.trim(),
-        dailyTargetHours: Number(dailyTargetHours),
         theme,
         avatarBadge,
         profilePictureUrl,
       });
-      showToast('Profile saved! ✨');
+      showToast('Profile changes saved! ✨');
       onClose();
     } catch (err) {
       showToast(err.message);
@@ -97,22 +91,7 @@ export default function ProfileModal({ onClose }) {
 
   return (
     <>
-      <Modal
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: '8px' }}>
-            <span>Profile & Settings</span>
-            <button
-              type="button"
-              className="btn-danger-xs"
-              onClick={handleLogout}
-              title="Sign out of account"
-            >
-              🚪 Logout
-            </button>
-          </div>
-        }
-        onClose={onClose}
-      >
+      <Modal title="Profile & Settings" onClose={onClose}>
         {/* Compact User Identity Strip */}
         <div className="profile-compact-header">
           <div className="profile-hero-avatar-wrap">
@@ -188,29 +167,6 @@ export default function ProfileModal({ onClose }) {
                   placeholder="you@example.com"
                 />
               </div>
-
-              <div className="field-group compact">
-                <label>Academic Goal / Bio</label>
-                <input
-                  type="text"
-                  className="text-input"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="e.g. CS Student mastering Spring Boot"
-                />
-              </div>
-
-              <div className="field-group compact">
-                <label>Daily Study Target (Hours)</label>
-                <input
-                  type="number"
-                  className="text-input"
-                  value={dailyTargetHours}
-                  onChange={(e) => setDailyTargetHours(e.target.value)}
-                  min="1"
-                  max="16"
-                />
-              </div>
             </div>
           )}
 
@@ -267,7 +223,7 @@ export default function ProfileModal({ onClose }) {
           {/* Action Row */}
           <div className="modal-footer-actions" style={{ marginTop: '16px' }}>
             <button className="btn-primary full-width" type="submit" disabled={saving}>
-              {saving ? 'Saving Changes...' : 'Save Changes ✨'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>
