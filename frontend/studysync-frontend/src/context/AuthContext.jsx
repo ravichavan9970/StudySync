@@ -144,8 +144,12 @@ export function AuthProvider({ children }) {
       } catch {}
     }
 
-    const updatedUser = { ...user, ...payload, ...res };
+    const cleanPic = resolveImageUrl(res?.profilePictureUrl || payload.profilePictureUrl);
+    const updatedUser = { ...user, ...payload, ...res, profilePictureUrl: cleanPic };
     setUser(updatedUser);
+    try {
+      localStorage.setItem('studysync_demo_user', JSON.stringify(updatedUser));
+    } catch {}
     return updatedUser;
   };
 

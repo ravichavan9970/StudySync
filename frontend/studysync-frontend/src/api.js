@@ -1,4 +1,9 @@
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1').replace(/\/$/, '');
+const BASE_URL = (
+  import.meta.env.VITE_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    ? 'https://studysync-api.onrender.com/api/v1' 
+    : 'http://localhost:8080/api/v1')
+).replace(/\/$/, '');
 
 // LocalStorage key helpers for Offline Demo Mode
 const STORAGE_KEYS = {
