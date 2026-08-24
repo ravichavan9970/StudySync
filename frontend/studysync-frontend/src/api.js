@@ -553,6 +553,18 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     };
   }
 
+  if (cleanPath === '/admin/users/all' && method === 'DELETE') {
+    setStored(STORAGE_KEYS.USERS_MAP, {});
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    localStorage.removeItem(STORAGE_KEYS.TASKS);
+    localStorage.removeItem(STORAGE_KEYS.NOTES);
+    localStorage.removeItem(STORAGE_KEYS.SUBJECTS);
+    localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
+    localStorage.removeItem(STORAGE_KEYS.SESSIONS);
+    localStorage.removeItem('studysync-user-name');
+    return null;
+  }
+
   if (cleanPath.startsWith('/admin/users/') && method === 'DELETE') {
     const uid = cleanPath.split('/')[3];
     delete usersMap[uid];

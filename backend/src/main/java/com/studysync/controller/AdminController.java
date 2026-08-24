@@ -62,6 +62,24 @@ public class AdminController {
         users.delete(u);
     }
 
+    @Transactional
+    @DeleteMapping("/users/all")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAllUsers() {
+        resetTokens.deleteAll();
+        sessions.deleteAll();
+        tasks.deleteAll();
+        notes.deleteAll();
+        categories.deleteAll();
+        statistics.deleteAll();
+
+        // Delete all non-ADMIN accounts
+        List<User> toDelete = users.findAll().stream()
+            .filter(u -> u.getRole() != Role.ADMIN)
+            .toList();
+        users.deleteAll(toDelete);
+    }
+
     @GetMapping("/dashboard")
     public AdminDashboardResponse dashboard() {
         return new AdminDashboardResponse(

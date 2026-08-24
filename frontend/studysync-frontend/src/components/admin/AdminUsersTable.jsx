@@ -9,7 +9,7 @@ function formatUserId(id) {
   return `ID: #${clean}`;
 }
 
-export default function AdminUsersTable({ users = [], onDeleteUser }) {
+export default function AdminUsersTable({ users = [], onDeleteUser, onDeleteAllUsers }) {
   return (
     <article className="card-box" style={{ marginTop: '24px' }}>
       <div className="section-header-bar">
@@ -17,7 +17,20 @@ export default function AdminUsersTable({ users = [], onDeleteUser }) {
           <span className="card-eyebrow">USER ROSTER & AUDIT</span>
           <h2 className="section-header-title">Registered Student & Admin Accounts</h2>
         </div>
-        <span className="header-meta-text">{users.length} accounts indexed</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span className="header-meta-text">{users.length} accounts indexed</span>
+          {users.length > 0 && onDeleteAllUsers && (
+            <button
+              type="button"
+              className="btn-danger-sm"
+              style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)' }}
+              onClick={onDeleteAllUsers}
+              title="Delete all user accounts permanently"
+            >
+              🗑️ Delete All Users
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="admin-table-container" style={{ overflowX: 'auto' }}>

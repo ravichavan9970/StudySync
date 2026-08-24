@@ -75,6 +75,19 @@ export default function AdminPortalPage() {
     }
   };
 
+  const handleDeleteAllUsers = async () => {
+    if (!window.confirm('⚠️ DANGER: Are you sure you want to permanently delete ALL student accounts and reset the database?')) return;
+    try {
+      await api('/admin/users/all', { method: 'DELETE', token });
+      setUsersList([]);
+      showToast('All users and database records purged successfully.');
+      logout();
+      navigate('/');
+    } catch (err) {
+      showToast(`Purge action: ${err.message}`);
+    }
+  };
+
   return (
     <div className="view-container">
       <TopHeader
@@ -116,6 +129,7 @@ export default function AdminPortalPage() {
         <AdminUsersTable
           users={usersList}
           onDeleteUser={handleDeleteUser}
+          onDeleteAllUsers={handleDeleteAllUsers}
         />
       </div>
     </div>
