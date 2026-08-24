@@ -86,12 +86,14 @@ export default function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
 
   const applyCrop = () => {
     if (!imgObj) return;
-    // Optimized 160x160 avatar size for fast cloud sync
-    const cropSize = 160;
+    // High-resolution 360x360 HD avatar size for crisp Retina & Mobile displays
+    const cropSize = 360;
     const outCanvas = document.createElement('canvas');
     outCanvas.width = cropSize;
     outCanvas.height = cropSize;
     const outCtx = outCanvas.getContext('2d');
+    outCtx.imageSmoothingEnabled = true;
+    outCtx.imageSmoothingQuality = 'high';
 
     outCtx.save();
     outCtx.beginPath();
@@ -114,9 +116,9 @@ export default function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
     outCtx.drawImage(imgObj, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
     outCtx.restore();
 
-    // Export as highly compressed JPEG (12-18KB) for lightning-fast cross-device sync
-    const compactBase64 = outCanvas.toDataURL('image/jpeg', 0.85);
-    onCrop(compactBase64);
+    // High-definition quality JPEG encoding preserving rich detail
+    const highQualityBase64 = outCanvas.toDataURL('image/jpeg', 0.90);
+    onCrop(highQualityBase64);
   };
 
   return (
