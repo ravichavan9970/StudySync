@@ -42,7 +42,13 @@ export default function AdminPortalPage() {
       if (usersData && Array.isArray(usersData.content)) {
         setUsersList(usersData.content);
       } else {
-        setUsersList(user ? [user] : []);
+        try {
+          const map = JSON.parse(localStorage.getItem('studysync_users_map') || '{}');
+          const localList = Object.values(map).filter((u) => u && u.email);
+          setUsersList(localList);
+        } catch {
+          setUsersList([]);
+        }
       }
     } catch (err) {
       showToast(`Admin sync notice: ${err.message}`);

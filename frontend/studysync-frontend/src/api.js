@@ -5,7 +5,7 @@ const BASE_URL = (
     : 'http://localhost:8080/api/v1')
 ).replace(/\/$/, '');
 
-// LocalStorage key helpers for Offline Demo Mode
+// LocalStorage key helpers for Offline Multi-User Isolation
 const STORAGE_KEYS = {
   USER: 'studysync_demo_user',
   USERS_MAP: 'studysync_users_map',
@@ -16,7 +16,7 @@ const STORAGE_KEYS = {
   SESSIONS: 'studysync_demo_sessions',
 };
 
-// Helper to resolve and trim image URLs (blocks legacy placeholder photos)
+// Helper to resolve and trim image URLs
 export function resolveImageUrl(url) {
   if (!url) return '';
   const trimmed = url.trim();
@@ -25,36 +25,6 @@ export function resolveImageUrl(url) {
   }
   return trimmed;
 }
-
-// Get current saved user name or default to Student
-function getSavedUserName() {
-  try {
-    const saved = localStorage.getItem('studysync-user-name');
-    if (saved && saved !== 'Student') return saved;
-  } catch {}
-  return 'Student';
-}
-
-// Clean initial data for offline mode
-const INITIAL_DEMO_DATA = {
-  user: {
-    id: 'usr_8f29c1',
-    name: getSavedUserName(),
-    email: '',
-    role: 'USER',
-    profilePictureUrl: '',
-    avatarBadge: '🎓',
-    darkMode: false,
-    theme: 'violet',
-    streakCount: 0,
-    productivityScore: 0,
-  },
-  subjects: [],
-  categories: [],
-  tasks: [],
-  notes: [],
-  sessions: [],
-};
 
 function getStored(key, fallback) {
   try {
@@ -93,8 +63,7 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
   try {
     response = await fetch(`${BASE_URL}${path}`, { ...options, method, headers: requestHeaders, body });
   } catch {
-    // Backend unreachable -> Use Offline Fallback seamlessly!
-    console.warn(`[StudySync API] Backend server at ${BASE_URL} is unreachable. Falling back to local offline mode.`);
+    // Backend unreachable -> Use Multi-User Offline Vault
     return handleOfflineDemoRequest(path, method, body);
   }
 
@@ -114,75 +83,105 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
   return data;
 }
 
-// Handler for offline mode when Java Spring Boot server is not running locally
+// Multi-User Offline Vault Handler
 function handleOfflineDemoRequest(path, method, bodyRaw) {
   const body = typeof bodyRaw === 'string' ? JSON.parse(bodyRaw) : bodyRaw || {};
   const cleanPath = path.split('?')[0];
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  // Initialize storage if empty
-  if (!localStorage.getItem(STORAGE_KEYS.USER)) {
-    setStored(STORAGE_KEYS.USER, INITIAL_DEMO_DATA.user);
-    setStored(STORAGE_KEYS.SUBJECTS, INITIAL_DEMO_DATA.subjects);
-    setStored(STORAGE_KEYS.CATEGORIES, INITIAL_DEMO_DATA.categories);
-    setStored(STORAGE_KEYS.TASKS, INITIAL_DEMO_DATA.tasks);
-    setStored(STORAGE_KEYS.NOTES, INITIAL_DEMO_DATA.notes);
-    setStored(STORAGE_KEYS.SESSIONS, INITIAL_DEMO_DATA.sessions);
-  }
-
-  const user = getStored(STORAGE_KEYS.USER, INITIAL_DEMO_DATA.user);
-  user.profilePictureUrl = resolveImageUrl(user.profilePictureUrl || '');
-
+  // Persistent registry of all users
   const usersMap = getStored(STORAGE_KEYS.USERS_MAP, {});
-  let tasks = getStored(STORAGE_KEYS.TASKS, INITIAL_DEMO_DATA.tasks);
-  let notes = getStored(STORAGE_KEYS.NOTES, INITIAL_DEMO_DATA.notes);
-  let subjects = getStored(STORAGE_KEYS.SUBJECTS, INITIAL_DEMO_DATA.subjects);
-  let categories = getStored(STORAGE_KEYS.CATEGORIES, INITIAL_DEMO_DATA.categories);
-  let sessions = getStored(STORAGE_KEYS.SESSIONS, INITIAL_DEMO_DATA.sessions);
+  
+  // Current active user
+  let activeUser = getStored(STORAGE_KEYS.USER, {
+    id: 'usr_default',
+    name: 'Student',
+    email: '',
+    role: 'USER',
+    profilePictureUrl: '',
+    avatarBadge: '🎓',
+    darkMode: false,
+    theme: 'violet',
+    streakCount: 0,
+    productivityScore: 0,
+  });
 
-  // Ensure user name from storage
-  const savedName = localStorage.getItem('studysync-user-name');
-  if (savedName && savedName !== 'Student') {
-    user.name = savedName;
-  } else if (!user.name) {
-    user.name = 'Student';
-  }
+  const activeEmailKey = (activeUser?.email || '').toLowerCase().trim();
 
-  // AUTH
+  // Helper to isolate data per user email
+  const getScopedKey = (baseKey) => {
+    return activeEmailKey ? `${baseKey}_${activeEmailKey}` : baseKey;
+  };
+
+  let tasks = getStored(getScopedKey(STORAGE_KEYS.TASKS), []);
+  let notes = getStored(getScopedKey(STORAGE_KEYS.NOTES), []);
+  let subjects = getStored(getScopedKey(STORAGE_KEYS.SUBJECTS), []);
+  let categories = getStored(getScopedKey(STORAGE_KEYS.CATEGORIES), []);
+  let sessions = getStored(getScopedKey(STORAGE_KEYS.SESSIONS), []);
+
+  const saveTasks = (next) => { tasks = next; setStored(getScopedKey(STORAGE_KEYS.TASKS), next); };
+  const saveNotes = (next) => { notes = next; setStored(getScopedKey(STORAGE_KEYS.NOTES), next); };
+  const saveSubjects = (next) => { subjects = next; setStored(getScopedKey(STORAGE_KEYS.SUBJECTS), next); };
+  const saveCategories = (next) => { categories = next; setStored(getScopedKey(STORAGE_KEYS.CATEGORIES), next); };
+  const saveSessions = (next) => { sessions = next; setStored(getScopedKey(STORAGE_KEYS.SESSIONS), next); };
+
+  // 1. REGISTRATION
   if (cleanPath === '/auth/register') {
     const emailKey = (body.email || '').toLowerCase().trim();
+    if (!emailKey) {
+      const err = new Error('Email is required.');
+      err.status = 400;
+      throw err;
+    }
+
     const name = body.name ? body.name.trim() : nameFromEmail(emailKey);
     const newUser = {
       id: `usr_${Math.random().toString(36).slice(2, 10)}`,
       name,
       email: emailKey,
       role: 'USER',
-      profilePictureUrl: body.profilePictureUrl || '',
+      profilePictureUrl: resolveImageUrl(body.profilePictureUrl || ''),
       avatarBadge: '🎓',
       darkMode: false,
       theme: 'violet',
       streakCount: 0,
       productivityScore: 0,
+      createdAt: new Date().toISOString(),
     };
-    Object.assign(user, newUser);
+
+    // Store in global users registry (NEVER overwrite other users)
     usersMap[emailKey] = { ...newUser };
-    setStored(STORAGE_KEYS.USER, user);
     setStored(STORAGE_KEYS.USERS_MAP, usersMap);
+
+    // Set as active user
+    setStored(STORAGE_KEYS.USER, newUser);
+
+    // Initialize user's separate empty data vaults
+    setStored(`${STORAGE_KEYS.TASKS}_${emailKey}`, []);
+    setStored(`${STORAGE_KEYS.NOTES}_${emailKey}`, []);
+    setStored(`${STORAGE_KEYS.SUBJECTS}_${emailKey}`, []);
+    setStored(`${STORAGE_KEYS.CATEGORIES}_${emailKey}`, []);
+    setStored(`${STORAGE_KEYS.SESSIONS}_${emailKey}`, []);
+
+    try {
+      localStorage.setItem('studysync-user-name', name);
+    } catch {}
 
     return {
       token: 'auth-token-' + Date.now(),
-      userId: user.id,
-      name: user.name,
-      email: user.email,
-      profilePictureUrl: user.profilePictureUrl || '',
+      userId: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      profilePictureUrl: newUser.profilePictureUrl,
       role: 'USER',
     };
   }
 
+  // 2. LOGIN
   if (cleanPath === '/auth/login') {
     const emailKey = (body.email || '').toLowerCase().trim();
     
-    // Master Administrator Account (Ravi@7447)
+    // Master Administrator Account
     if (
       (emailKey === 'ravi@7447' || emailKey === 'ravi@7447@studysync.io' || emailKey === 'admin@studysync.io') &&
       body.password === 'StudySync#*&Master2026!Admin'
@@ -211,56 +210,54 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     }
 
     const existing = usersMap[emailKey];
-
     if (!existing) {
-      const err = new Error('Invalid email or password. This user account does not exist or was deleted.');
+      const err = new Error('Invalid email or password. This user account does not exist.');
       err.status = 401;
       throw err;
     }
 
-    Object.assign(user, existing);
-    setStored(STORAGE_KEYS.USER, user);
+    // Set existing user as active user
+    setStored(STORAGE_KEYS.USER, existing);
+    try {
+      if (existing.name) localStorage.setItem('studysync-user-name', existing.name);
+    } catch {}
 
     return {
       token: 'auth-token-' + Date.now(),
-      userId: user.id,
-      name: user.name,
-      email: user.email,
-      profilePictureUrl: user.profilePictureUrl || '',
-      role: user.role || 'USER',
+      userId: existing.id,
+      name: existing.name,
+      email: existing.email,
+      profilePictureUrl: existing.profilePictureUrl || '',
+      role: existing.role || 'USER',
     };
   }
 
-  // PROFILE
+  // 3. PROFILE
   if (cleanPath === '/users/me') {
-    const savedName = localStorage.getItem('studysync-user-name');
-    if (savedName && savedName !== 'Student') {
-      user.name = savedName;
-    }
-    user.profilePictureUrl = resolveImageUrl(user.profilePictureUrl || '');
-    return user;
+    activeUser.profilePictureUrl = resolveImageUrl(activeUser.profilePictureUrl || '');
+    return activeUser;
   }
   
   if (cleanPath === '/profile' && method === 'PUT') {
-    Object.assign(user, body);
-    user.profilePictureUrl = resolveImageUrl(user.profilePictureUrl || '');
-    setStored(STORAGE_KEYS.USER, user);
-    if (user.email) {
-      usersMap[user.email.toLowerCase()] = { ...user };
+    Object.assign(activeUser, body);
+    activeUser.profilePictureUrl = resolveImageUrl(activeUser.profilePictureUrl || '');
+    setStored(STORAGE_KEYS.USER, activeUser);
+    if (activeUser.email) {
+      const em = activeUser.email.toLowerCase();
+      usersMap[em] = { ...(usersMap[em] || {}), ...activeUser };
       setStored(STORAGE_KEYS.USERS_MAP, usersMap);
     }
     try {
-      if (user.name) localStorage.setItem('studysync-user-name', user.name);
+      if (activeUser.name) localStorage.setItem('studysync-user-name', activeUser.name);
     } catch {}
-    return user;
+    return activeUser;
   }
 
-  // SUBJECTS
+  // 4. SUBJECTS (Isolated per user)
   if (cleanPath === '/subjects') {
     if (method === 'POST') {
       const newSub = { id: `sub-${Date.now()}`, name: body.name, code: body.code || '', color: body.color || '#6366f1' };
-      subjects.push(newSub);
-      setStored(STORAGE_KEYS.SUBJECTS, subjects);
+      saveSubjects([...subjects, newSub]);
       return newSub;
     }
     return subjects;
@@ -268,8 +265,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
 
   if (cleanPath.startsWith('/subjects/') && method === 'DELETE') {
     const subId = cleanPath.split('/')[2];
-    subjects = subjects.filter((s) => s.id !== subId);
-    setStored(STORAGE_KEYS.SUBJECTS, subjects);
+    saveSubjects(subjects.filter((s) => s.id !== subId));
     return null;
   }
 
@@ -277,18 +273,18 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     const subId = cleanPath.split('/')[2];
     const idx = subjects.findIndex((s) => s.id === subId);
     if (idx !== -1) {
-      subjects[idx] = { ...subjects[idx], ...body };
-      setStored(STORAGE_KEYS.SUBJECTS, subjects);
-      return subjects[idx];
+      const next = [...subjects];
+      next[idx] = { ...next[idx], ...body };
+      saveSubjects(next);
+      return next[idx];
     }
   }
 
-  // CATEGORIES
+  // 5. CATEGORIES (Isolated per user)
   if (cleanPath === '/categories') {
     if (method === 'POST') {
       const newCat = { id: `cat-${Date.now()}`, name: body.name, icon: body.icon || '🏷️', color: body.color || '#6366f1' };
-      categories.push(newCat);
-      setStored(STORAGE_KEYS.CATEGORIES, categories);
+      saveCategories([...categories, newCat]);
       return newCat;
     }
     return categories;
@@ -296,8 +292,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
 
   if (cleanPath.startsWith('/categories/') && method === 'DELETE') {
     const catId = cleanPath.split('/')[2];
-    categories = categories.filter((c) => c.id !== catId);
-    setStored(STORAGE_KEYS.CATEGORIES, categories);
+    saveCategories(categories.filter((c) => c.id !== catId));
     return null;
   }
 
@@ -305,13 +300,14 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     const catId = cleanPath.split('/')[2];
     const idx = categories.findIndex((c) => c.id === catId);
     if (idx !== -1) {
-      categories[idx] = { ...categories[idx], ...body };
-      setStored(STORAGE_KEYS.CATEGORIES, categories);
-      return categories[idx];
+      const next = [...categories];
+      next[idx] = { ...next[idx], ...body };
+      saveCategories(next);
+      return next[idx];
     }
   }
 
-  // TASKS
+  // 6. TASKS (Isolated per user)
   if (cleanPath === '/tasks') {
     if (method === 'POST') {
       const category = categories.find((c) => c.id === body.categoryId);
@@ -329,8 +325,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
         categoryName: subject ? subject.name : (category ? category.name : 'General'),
         createdAt: new Date().toISOString(),
       };
-      tasks.push(newTask);
-      setStored(STORAGE_KEYS.TASKS, tasks);
+      saveTasks([...tasks, newTask]);
       return newTask;
     }
     return { content: tasks, totalPages: 1 };
@@ -342,8 +337,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     const isCompleteRoute = parts[3] === 'complete';
 
     if (method === 'DELETE') {
-      tasks = tasks.filter((t) => t.id !== taskId);
-      setStored(STORAGE_KEYS.TASKS, tasks);
+      saveTasks(tasks.filter((t) => t.id !== taskId));
       return null;
     }
 
@@ -358,7 +352,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
           task.status = task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
         }
         task.completedAt = task.status === 'COMPLETED' ? new Date().toISOString() : null;
-        setStored(STORAGE_KEYS.TASKS, tasks);
+        saveTasks([...tasks]);
         return task;
       }
     }
@@ -368,19 +362,20 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
       if (idx !== -1) {
         const category = categories.find((c) => c.id === body.categoryId);
         const subject = subjects.find((s) => s.id === body.subjectId);
-        tasks[idx] = {
-          ...tasks[idx],
+        const next = [...tasks];
+        next[idx] = {
+          ...next[idx],
           ...body,
-          durationMinutes: Number(body.durationMinutes) || tasks[idx].durationMinutes || 25,
+          durationMinutes: Number(body.durationMinutes) || next[idx].durationMinutes || 25,
           categoryName: subject ? subject.name : (category ? category.name : 'General'),
         };
-        setStored(STORAGE_KEYS.TASKS, tasks);
-        return tasks[idx];
+        saveTasks(next);
+        return next[idx];
       }
     }
   }
 
-  // NOTES
+  // 7. NOTES (Isolated per user)
   if (cleanPath === '/notes') {
     if (method === 'POST') {
       const category = categories.find((c) => c.id === body.categoryId);
@@ -394,8 +389,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
         categoryName: category ? category.name : 'General',
         updatedAt: new Date().toISOString(),
       };
-      notes.unshift(newNote);
-      setStored(STORAGE_KEYS.NOTES, notes);
+      saveNotes([newNote, ...notes]);
       return newNote;
     }
     return { content: notes, totalPages: 1 };
@@ -407,8 +401,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     const isArchiveRoute = parts[3] === 'archive';
 
     if (method === 'DELETE') {
-      notes = notes.filter((n) => n.id !== noteId);
-      setStored(STORAGE_KEYS.NOTES, notes);
+      saveNotes(notes.filter((n) => n.id !== noteId));
       return null;
     }
 
@@ -416,7 +409,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
       const note = notes.find((n) => n.id === noteId);
       if (note) {
         note.archived = !note.archived;
-        setStored(STORAGE_KEYS.NOTES, notes);
+        saveNotes([...notes]);
         return note;
       }
     }
@@ -425,19 +418,20 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
       const idx = notes.findIndex((n) => n.id === noteId);
       if (idx !== -1) {
         const category = categories.find((c) => c.id === body.categoryId);
-        notes[idx] = {
-          ...notes[idx],
+        const next = [...notes];
+        next[idx] = {
+          ...next[idx],
           ...body,
           categoryName: category ? category.name : 'General',
           updatedAt: new Date().toISOString(),
         };
-        setStored(STORAGE_KEYS.NOTES, notes);
-        return notes[idx];
+        saveNotes(next);
+        return next[idx];
       }
     }
   }
 
-  // Focus and task calculations
+  // Focus and task calculations for active user
   const realFocusMinutes = sessions
     .filter((s) => s.completed !== false)
     .reduce((acc, s) => acc + Number(s.completedMinutes || s.durationMinutes || s.plannedMinutes || 0), 0);
@@ -448,7 +442,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     ? 0 
     : Math.min(100, (completedTasksCount * 20) + Math.round(realFocusMinutes / 2));
 
-  // DASHBOARD
+  // 8. DASHBOARD
   if (cleanPath === '/dashboard') {
     const completedToday = tasks.filter((t) => t.status === 'COMPLETED' && t.completedAt && t.completedAt.slice(0, 10) === todayStr).length;
     const dueToday = tasks.filter((t) => t.dueDate === todayStr).length;
@@ -462,7 +456,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     };
   }
 
-  // STATISTICS
+  // 9. STATISTICS
   if (cleanPath === '/statistics') {
     const days = [];
     const now = new Date();
@@ -495,7 +489,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     };
   }
 
-  // NOTIFICATIONS
+  // 10. NOTIFICATIONS
   if (cleanPath === '/notifications') {
     const notifs = [];
     const pendingTasks = tasks.filter((t) => t.status !== 'COMPLETED');
@@ -519,7 +513,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     return notifs;
   }
 
-  // STUDY SESSIONS
+  // 11. STUDY SESSIONS
   if (cleanPath === '/study-sessions') {
     if (method === 'POST') {
       const newSession = {
@@ -529,8 +523,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
         completed: false,
         createdAt: new Date().toISOString()
       };
-      sessions.push(newSession);
-      setStored(STORAGE_KEYS.SESSIONS, sessions);
+      saveSessions([...sessions, newSession]);
       return newSession;
     }
   }
@@ -545,83 +538,94 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
       completed: true,
       createdAt: new Date().toISOString()
     };
+    const next = [...sessions];
     if (idx !== -1) {
-      sessions[idx] = { ...sessions[idx], ...updated };
+      next[idx] = { ...next[idx], ...updated };
     } else {
-      sessions.push(updated);
+      next.push(updated);
     }
-    setStored(STORAGE_KEYS.SESSIONS, sessions);
+    saveSessions(next);
     return updated;
   }
 
-  // ADMIN ENDPOINTS
-  if (cleanPath === '/admin/verify-passcode') {
-    const entered = body.passcode || '';
-    if (entered === 'StudySync#*&Master2026!Admin') {
-      return { valid: true, message: 'Admin passcode verified.' };
-    }
-    const err = new Error('Invalid administrator master passcode.');
-    err.status = 401;
-    throw err;
-  }
-
+  // 12. ADMIN ENDPOINTS (Aggregates all registered users)
   if (cleanPath === '/admin/system/stats') {
+    const allUsersList = Object.values(usersMap).filter((u) => u && u.email);
+    let totalAllTasks = 0;
+    let totalAllNotes = 0;
+    allUsersList.forEach((u) => {
+      const uTasks = getStored(`${STORAGE_KEYS.TASKS}_${u.email.toLowerCase()}`, []);
+      const uNotes = getStored(`${STORAGE_KEYS.NOTES}_${u.email.toLowerCase()}`, []);
+      totalAllTasks += uTasks.length;
+      totalAllNotes += uNotes.length;
+    });
+
     return {
-      totalUsers: Object.keys(usersMap).length || 1,
-      activeUsers: Object.keys(usersMap).length || 1,
-      totalTasks: tasks.length,
-      completedTasks: completedTasksCount,
-      totalNotes: notes.length,
-      totalCategories: categories.length,
-      totalSessions: sessions.length,
-      usedMemoryMb: 92,
-      totalMemoryMb: 512,
-      serverStatus: 'ONLINE (RENDER DEPLOYED)',
-      cloudEnvironment: 'RENDER_PRODUCTION_READY',
+      totalUsers: allUsersList.length,
+      activeUsers: allUsersList.length,
+      totalTasks: totalAllTasks,
+      completedTasks: 0,
+      totalNotes: totalAllNotes,
+      totalCategories: 0,
+      totalSessions: 0,
+      serverStatus: 'ONLINE',
     };
   }
 
   if (cleanPath === '/admin/users') {
     const allUsers = Object.values(usersMap).filter((u) => u && u.email);
     return {
-      content: allUsers.map((u, i) => ({
-        id: u.id || `usr-${i + 1}`,
-        name: u.name || 'User',
-        email: u.email,
-        role: u.role || 'USER',
-        profilePictureUrl: u.profilePictureUrl || '',
-        streakCount: u.streakCount || 0,
-        createdAt: u.createdAt || new Date().toISOString(),
-      })),
+      content: allUsers.map((u, i) => {
+        const uTasks = getStored(`${STORAGE_KEYS.TASKS}_${u.email.toLowerCase()}`, []);
+        const uSessions = getStored(`${STORAGE_KEYS.SESSIONS}_${u.email.toLowerCase()}`, []);
+        const uStreak = uSessions.length > 0 || uTasks.length > 0 ? (u.streakCount || 1) : 0;
+        return {
+          id: u.id || `usr-${i + 1}`,
+          name: u.name || 'Student',
+          email: u.email,
+          role: u.role || 'USER',
+          profilePictureUrl: u.profilePictureUrl || '',
+          avatarBadge: u.avatarBadge || '🎓',
+          streakCount: uStreak,
+          createdAt: u.createdAt || new Date().toISOString(),
+        };
+      }),
       totalPages: 1,
     };
   }
 
   if (cleanPath === '/admin/users/all' && method === 'DELETE') {
+    // Purge all user vaults
+    Object.keys(usersMap).forEach((em) => {
+      localStorage.removeItem(`${STORAGE_KEYS.TASKS}_${em}`);
+      localStorage.removeItem(`${STORAGE_KEYS.NOTES}_${em}`);
+      localStorage.removeItem(`${STORAGE_KEYS.SUBJECTS}_${em}`);
+      localStorage.removeItem(`${STORAGE_KEYS.CATEGORIES}_${em}`);
+      localStorage.removeItem(`${STORAGE_KEYS.SESSIONS}_${em}`);
+    });
     setStored(STORAGE_KEYS.USERS_MAP, {});
     localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.TASKS);
-    localStorage.removeItem(STORAGE_KEYS.NOTES);
-    localStorage.removeItem(STORAGE_KEYS.SUBJECTS);
-    localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
-    localStorage.removeItem(STORAGE_KEYS.SESSIONS);
     localStorage.removeItem('studysync-user-name');
     return null;
   }
 
   if (cleanPath.startsWith('/admin/users/') && method === 'DELETE') {
     const uid = cleanPath.split('/')[3];
-    delete usersMap[uid];
+    let targetEmail = null;
     Object.keys(usersMap).forEach((k) => {
-      if (usersMap[k]?.id === uid || usersMap[k]?.email === uid) {
+      if (usersMap[k]?.id === uid || usersMap[k]?.email === uid || k === uid) {
+        targetEmail = k;
         delete usersMap[k];
       }
     });
-    setStored(STORAGE_KEYS.USERS_MAP, usersMap);
-    if (Object.keys(usersMap).length === 0) {
-      localStorage.removeItem(STORAGE_KEYS.USER);
-      localStorage.removeItem('studysync-user-name');
+    if (targetEmail) {
+      localStorage.removeItem(`${STORAGE_KEYS.TASKS}_${targetEmail}`);
+      localStorage.removeItem(`${STORAGE_KEYS.NOTES}_${targetEmail}`);
+      localStorage.removeItem(`${STORAGE_KEYS.SUBJECTS}_${targetEmail}`);
+      localStorage.removeItem(`${STORAGE_KEYS.CATEGORIES}_${targetEmail}`);
+      localStorage.removeItem(`${STORAGE_KEYS.SESSIONS}_${targetEmail}`);
     }
+    setStored(STORAGE_KEYS.USERS_MAP, usersMap);
     return null;
   }
 
