@@ -19,7 +19,7 @@ const avatarBadges = ['🎓', '💻', '🔬', '📚', '🚀', '⚡', '🏆', '�
 
 export default function ProfileModal({ onClose }) {
   const { user, updateProfile, logout } = useAuth();
-  const { accent, setAccent, darkMode, toggleDarkMode } = useTheme();
+  const { accent, setAccent } = useTheme();
   const { data, showToast } = useStudySync();
   const navigate = useNavigate();
 
@@ -204,17 +204,6 @@ export default function ProfileModal({ onClose }) {
                     </button>
                   ))}
                 </div>
-              </div>
-
-              <div className="field-group compact">
-                <label>Mode</label>
-                <button
-                  type="button"
-                  className="btn-outline full-width btn-sm"
-                  onClick={toggleDarkMode}
-                >
-                  {darkMode ? '☀️ Switch to Light Mode' : '🌙 Switch to Dark Mode'}
-                </button>
               </div>
             </div>
           )}
