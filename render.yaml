@@ -14,7 +14,7 @@ services:
       - key: PORT
         value: 8080
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:h2:file:/app/data/studysyncdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;AUTO_SERVER=TRUE
+        value: jdbc:h2:file:/app/data/studysyncdb;DB_CLOSE_DELAY=-1
       - key: SPRING_DATASOURCE_USERNAME
         value: sa
       - key: SPRING_DATASOURCE_PASSWORD

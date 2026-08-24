@@ -2,7 +2,7 @@ spring:
   application:
     name: studysync-api
   datasource:
-    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:h2:file:./data/studysyncdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}}
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:h2:file:./data/studysyncdb;DB_CLOSE_DELAY=-1}}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER:org.h2.Driver}
     username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:sa}}
     password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:StudySync#*&Master2026!Admin}}
