@@ -1,4 +1,6 @@
-// Vercel Serverless Real-Time Cloud Sync Function
+// StudySync Global Edge Real-Time Cloud Sync Engine
+// Handles multi-device state synchronization across Mobile, Laptop, and Tablets
+
 let globalUsersRegistry = {
   "ravindrachavan265125@gmail.com": {
     id: "usr_chavan",
@@ -7,6 +9,10 @@ let globalUsersRegistry = {
     role: "USER",
     streakCount: 0,
     avatarBadge: "🎓",
+    darkMode: false,
+    theme: "violet",
+    dailyTargetHours: 4,
+    defaultFocusMinutes: 25,
     createdAt: new Date().toISOString(),
     tasks: [],
     notes: [],
@@ -21,6 +27,10 @@ let globalUsersRegistry = {
     role: "USER",
     streakCount: 0,
     avatarBadge: "🎓",
+    darkMode: false,
+    theme: "violet",
+    dailyTargetHours: 4,
+    defaultFocusMinutes: 25,
     createdAt: new Date().toISOString(),
     tasks: [],
     notes: [],
@@ -42,18 +52,45 @@ export default function handler(req, res) {
   const query = req.query || {};
   const emailParam = (query.email || '').toLowerCase().trim();
 
-  // GET: Retrieve single user data OR all users
+  // 1. GET Requests
   if (req.method === 'GET') {
+    // If stats requested for Admin
+    if (query.stats === 'true') {
+      const userList = Object.values(globalUsersRegistry);
+      let totalTasks = 0;
+      let totalNotes = 0;
+      let totalSessions = 0;
+
+      userList.forEach((u) => {
+        totalTasks += Array.isArray(u.tasks) ? u.tasks.length : 0;
+        totalNotes += Array.isArray(u.notes) ? u.notes.length : 0;
+        totalSessions += Array.isArray(u.sessions) ? u.sessions.length : 0;
+      });
+
+      return res.status(200).json({
+        totalUsers: userList.length,
+        activeUsers: userList.length,
+        totalTasks,
+        totalNotes,
+        totalSessions,
+        serverStatus: 'ONLINE',
+      });
+    }
+
+    // If specific user data requested
     if (emailParam && globalUsersRegistry[emailParam]) {
       return res.status(200).json({ user: globalUsersRegistry[emailParam] });
     }
+
+    // Default: return all registered accounts
     return res.status(200).json({ users: globalUsersRegistry });
   }
 
-  // POST / PUT: Save / update user profile, photo, tasks, notes, etc.
+  // 2. POST / PUT: Real-time Cloud Sync from any device
   if (req.method === 'POST' || req.method === 'PUT') {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
-    
+
+    // Batch registry update
     if (body.users && typeof body.users === 'object') {
       globalUsersRegistry = { ...globalUsersRegistry, ...body.users };
       return res.status(200).json({ success: true, users: globalUsersRegistry });
@@ -62,27 +99,40 @@ export default function handler(req, res) {
     const emailKey = (body.email || emailParam || '').toLowerCase().trim();
     if (emailKey) {
       const existing = globalUsersRegistry[emailKey] || {};
-      globalUsersRegistry[emailKey] = {
+      const updatedUser = {
         ...existing,
         ...body,
+        id: body.id || existing.id || `usr_${Date.now()}`,
         email: emailKey,
         name: body.name || existing.name || 'Student',
+        role: body.role || existing.role || 'USER',
         profilePictureUrl: body.profilePictureUrl !== undefined ? body.profilePictureUrl : (existing.profilePictureUrl || ''),
         avatarBadge: body.avatarBadge || existing.avatarBadge || '🎓',
-        tasks: body.tasks !== undefined ? body.tasks : (existing.tasks || []),
-        notes: body.notes !== undefined ? body.notes : (existing.notes || []),
-        subjects: body.subjects !== undefined ? body.subjects : (existing.subjects || []),
-        categories: body.categories !== undefined ? body.categories : (existing.categories || []),
-        sessions: body.sessions !== undefined ? body.sessions : (existing.sessions || []),
-        updatedAt: new Date().toISOString(),
+        darkMode: body.darkMode !== undefined ? Boolean(body.darkMode) : Boolean(existing.darkMode),
+        theme: body.theme || existing.theme || 'violet',
+        dailyTargetHours: Number(body.dailyTargetHours || existing.dailyTargetHours || 4),
+        defaultFocusMinutes: Number(body.defaultFocusMinutes || existing.defaultFocusMinutes || 25),
+        streakCount: body.streakCount !== undefined ? Number(body.streakCount) : (existing.streakCount || 0),
+        tasks: Array.isArray(body.tasks) ? body.tasks : (existing.tasks || []),
+        notes: Array.isArray(body.notes) ? body.notes : (existing.notes || []),
+        subjects: Array.isArray(body.subjects) ? body.subjects : (existing.subjects || []),
+        categories: Array.isArray(body.categories) ? body.categories : (existing.categories || []),
+        sessions: Array.isArray(body.sessions) ? body.sessions : (existing.sessions || []),
+        lastSyncedAt: new Date().toISOString(),
       };
-      return res.status(200).json({ success: true, user: globalUsersRegistry[emailKey], users: globalUsersRegistry });
+
+      globalUsersRegistry[emailKey] = updatedUser;
+      return res.status(200).json({
+        success: true,
+        user: updatedUser,
+        users: globalUsersRegistry,
+      });
     }
 
-    return res.status(400).json({ error: 'Email is required' });
+    return res.status(400).json({ error: 'Email is required for synchronization' });
   }
 
-  // DELETE: Delete user account or reset
+  // 3. DELETE: User removal & database resets
   if (req.method === 'DELETE') {
     if (query.all === 'true') {
       globalUsersRegistry = {};

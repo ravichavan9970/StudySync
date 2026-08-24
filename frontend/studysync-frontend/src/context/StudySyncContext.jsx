@@ -99,6 +99,20 @@ export function StudySyncProvider({ children }) {
   useEffect(() => {
     if (token) {
       reloadData();
+
+      // Automatically sync when user focuses tab or switches between devices
+      const handleFocus = () => {
+        if (document.visibilityState === 'visible') {
+          reloadData();
+        }
+      };
+      window.addEventListener('focus', handleFocus);
+      document.addEventListener('visibilitychange', handleFocus);
+
+      return () => {
+        window.removeEventListener('focus', handleFocus);
+        document.removeEventListener('visibilitychange', handleFocus);
+      };
     } else {
       setData({
         dashboard: null,

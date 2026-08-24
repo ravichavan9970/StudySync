@@ -65,6 +65,21 @@ export default function AdminPortalPage() {
         }
       } catch {}
 
+      let totalTasksCount = 0;
+      let totalNotesCount = 0;
+      combined.forEach((u) => {
+        totalTasksCount += Array.isArray(u.tasks) ? u.tasks.length : 0;
+        totalNotesCount += Array.isArray(u.notes) ? u.notes.length : 0;
+      });
+
+      setStats((prev) => ({
+        ...prev,
+        totalUsers: combined.length,
+        activeUsers: combined.length,
+        totalTasks: Math.max(prev.totalTasks || 0, totalTasksCount),
+        totalNotes: Math.max(prev.totalNotes || 0, totalNotesCount),
+      }));
+
       setUsersList(combined);
     } catch (err) {
       showToast(`Admin sync notice: ${err.message}`);

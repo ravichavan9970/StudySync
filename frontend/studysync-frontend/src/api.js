@@ -5,8 +5,8 @@ const BASE_URL = (
     : 'http://localhost:8080/api/v1')
 ).replace(/\/$/, '');
 
-// LocalStorage key helpers for Offline Multi-User Isolation
-const STORAGE_KEYS = {
+// LocalStorage key constants
+export const STORAGE_KEYS = {
   USER: 'studysync_demo_user',
   USERS_MAP: 'studysync_users_map',
   TASKS: 'studysync_demo_tasks',
@@ -16,7 +16,7 @@ const STORAGE_KEYS = {
   SESSIONS: 'studysync_demo_sessions',
 };
 
-// Helper to resolve and trim image URLs
+// Safe image resolver
 export function resolveImageUrl(url) {
   if (!url || typeof url !== 'string') return '';
   return url.trim();
@@ -39,95 +39,6 @@ function setStored(key, val) {
   }
 }
 
-// Sync with Edge Cloud Store (reconciles mobile and laptop in real-time)
-export async function pushUserToCloud(userObj) {
-  try {
-    if (typeof window !== 'undefined' && userObj?.email) {
-      await fetch('/api/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userObj),
-      }).catch(() => {});
-    }
-  } catch {}
-}
-
-export async function fetchCloudUsers() {
-  try {
-    if (typeof window !== 'undefined') {
-      const res = await fetch('/api/sync').catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json().catch(() => null);
-        return data?.users || {};
-      }
-    }
-  } catch {}
-  return {};
-}
-
-export async function syncUserDataToCloud(emailKey) {
-  if (!emailKey || typeof window === 'undefined') return;
-  const em = emailKey.toLowerCase().trim();
-  try {
-    const usersMap = getStored(STORAGE_KEYS.USERS_MAP, {});
-    const user = usersMap[em] || getStored(STORAGE_KEYS.USER, {});
-    const tasks = getStored(`${STORAGE_KEYS.TASKS}_${em}`, []);
-    const notes = getStored(`${STORAGE_KEYS.NOTES}_${em}`, []);
-    const subjects = getStored(`${STORAGE_KEYS.SUBJECTS}_${em}`, []);
-    const categories = getStored(`${STORAGE_KEYS.CATEGORIES}_${em}`, []);
-    const sessions = getStored(`${STORAGE_KEYS.SESSIONS}_${em}`, []);
-
-    const payload = {
-      ...user,
-      email: em,
-      tasks,
-      notes,
-      subjects,
-      categories,
-      sessions,
-    };
-
-    fetch('/api/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).catch(() => {});
-  } catch {}
-}
-
-export async function pullUserDataFromCloud(emailKey) {
-  if (!emailKey || typeof window === 'undefined') return;
-  const em = emailKey.toLowerCase().trim();
-  try {
-    const res = await fetch(`/api/sync?email=${encodeURIComponent(em)}`).catch(() => null);
-    if (res && res.ok) {
-      const data = await res.json().catch(() => null);
-      if (data?.user) {
-        const u = data.user;
-        const usersMap = getStored(STORAGE_KEYS.USERS_MAP, {});
-        usersMap[em] = { ...usersMap[em], ...u };
-        setStored(STORAGE_KEYS.USERS_MAP, usersMap);
-
-        if (Array.isArray(u.tasks)) setStored(`${STORAGE_KEYS.TASKS}_${em}`, u.tasks);
-        if (Array.isArray(u.notes)) setStored(`${STORAGE_KEYS.NOTES}_${em}`, u.notes);
-        if (Array.isArray(u.subjects)) setStored(`${STORAGE_KEYS.SUBJECTS}_${em}`, u.subjects);
-        if (Array.isArray(u.categories)) setStored(`${STORAGE_KEYS.CATEGORIES}_${em}`, u.categories);
-        if (Array.isArray(u.sessions)) setStored(`${STORAGE_KEYS.SESSIONS}_${em}`, u.sessions);
-        return u;
-      }
-    }
-  } catch {}
-}
-
-export async function deleteCloudUser(id, email, all = false) {
-  try {
-    if (typeof window !== 'undefined') {
-      const query = all ? 'all=true' : (id ? `id=${id}` : `email=${email}`);
-      await fetch(`/api/sync?${query}`, { method: 'DELETE' }).catch(() => {});
-    }
-  } catch {}
-}
-
 function nameFromEmail(email = '') {
   const handle = email.split('@')[0] || '';
   if (!handle) return 'Student';
@@ -139,6 +50,126 @@ function nameFromEmail(email = '') {
     .join(' ');
 }
 
+// -------------------------------------------------------------
+// UNIFIED REAL-TIME CROSS-DEVICE CLOUD SYNC ENGINE
+// -------------------------------------------------------------
+let syncDebounceTimer = null;
+
+export const CloudSync = {
+  async syncUserData(emailKey) {
+    if (!emailKey || typeof window === 'undefined') return;
+    const em = emailKey.toLowerCase().trim();
+
+    if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+    syncDebounceTimer = setTimeout(async () => {
+      try {
+        const usersMap = getStored(STORAGE_KEYS.USERS_MAP, {});
+        const user = usersMap[em] || getStored(STORAGE_KEYS.USER, {});
+        const tasks = getStored(`${STORAGE_KEYS.TASKS}_${em}`, []);
+        const notes = getStored(`${STORAGE_KEYS.NOTES}_${em}`, []);
+        const subjects = getStored(`${STORAGE_KEYS.SUBJECTS}_${em}`, []);
+        const categories = getStored(`${STORAGE_KEYS.CATEGORIES}_${em}`, []);
+        const sessions = getStored(`${STORAGE_KEYS.SESSIONS}_${em}`, []);
+
+        const payload = {
+          ...user,
+          email: em,
+          name: user.name || nameFromEmail(em),
+          profilePictureUrl: user.profilePictureUrl || '',
+          avatarBadge: user.avatarBadge || '🎓',
+          tasks,
+          notes,
+          subjects,
+          categories,
+          sessions,
+        };
+
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+      } catch {}
+    }, 200);
+  },
+
+  async pullUserData(emailKey) {
+    if (!emailKey || typeof window === 'undefined') return null;
+    const em = emailKey.toLowerCase().trim();
+    try {
+      const res = await fetch(`/api/sync?email=${encodeURIComponent(em)}`).catch(() => null);
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.user) {
+          const u = data.user;
+          const usersMap = getStored(STORAGE_KEYS.USERS_MAP, {});
+          usersMap[em] = { ...usersMap[em], ...u };
+          setStored(STORAGE_KEYS.USERS_MAP, usersMap);
+
+          if (Array.isArray(u.tasks)) setStored(`${STORAGE_KEYS.TASKS}_${em}`, u.tasks);
+          if (Array.isArray(u.notes)) setStored(`${STORAGE_KEYS.NOTES}_${em}`, u.notes);
+          if (Array.isArray(u.subjects)) setStored(`${STORAGE_KEYS.SUBJECTS}_${em}`, u.subjects);
+          if (Array.isArray(u.categories)) setStored(`${STORAGE_KEYS.CATEGORIES}_${em}`, u.categories);
+          if (Array.isArray(u.sessions)) setStored(`${STORAGE_KEYS.SESSIONS}_${em}`, u.sessions);
+
+          const currentUser = getStored(STORAGE_KEYS.USER, null);
+          if (currentUser && currentUser.email?.toLowerCase() === em) {
+            const merged = { ...currentUser, ...u };
+            setStored(STORAGE_KEYS.USER, merged);
+          }
+
+          return u;
+        }
+      }
+    } catch {}
+    return null;
+  },
+
+  async fetchAllUsers() {
+    try {
+      if (typeof window !== 'undefined') {
+        const res = await fetch('/api/sync').catch(() => null);
+        if (res && res.ok) {
+          const data = await res.json().catch(() => null);
+          return data?.users || {};
+        }
+      }
+    } catch {}
+    return {};
+  },
+
+  async fetchSystemStats() {
+    try {
+      if (typeof window !== 'undefined') {
+        const res = await fetch('/api/sync?stats=true').catch(() => null);
+        if (res && res.ok) {
+          return await res.json().catch(() => null);
+        }
+      }
+    } catch {}
+    return null;
+  },
+
+  async deleteUser(id, email, all = false) {
+    try {
+      if (typeof window !== 'undefined') {
+        const query = all ? 'all=true' : (id ? `id=${id}` : `email=${email}`);
+        await fetch(`/api/sync?${query}`, { method: 'DELETE' }).catch(() => {});
+      }
+    } catch {}
+  },
+};
+
+// Aliases for compatibility
+export const syncUserDataToCloud = CloudSync.syncUserData;
+export const pullUserDataFromCloud = CloudSync.pullUserData;
+export const fetchCloudUsers = CloudSync.fetchAllUsers;
+export const deleteCloudUser = CloudSync.deleteUser;
+export const pushUserToCloud = (user) => CloudSync.syncUserData(user?.email);
+
+// -------------------------------------------------------------
+// MAIN API CLIENT WITH MULTI-USER ISOLATION & FALLBACK
+// -------------------------------------------------------------
 export async function api(path, { token, body, headers = {}, method = 'GET', ...options } = {}) {
   const requestHeaders = { ...headers };
   if (token) requestHeaders.Authorization = `Bearer ${token}`;
@@ -164,7 +195,7 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
       if (attempts >= maxAttempts) {
         return handleOfflineDemoRequest(path, method, body);
       }
-      await new Promise((r) => setTimeout(r, 800));
+      await new Promise((r) => setTimeout(r, 600));
     }
   }
 
@@ -209,23 +240,23 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
       const localUsers = getStored(STORAGE_KEYS.USERS_MAP, {});
       localUsers[emailKey] = newUser;
       setStored(STORAGE_KEYS.USERS_MAP, localUsers);
-      pushUserToCloud(newUser);
+      CloudSync.syncUserData(emailKey);
     } catch {}
   }
 
   return data;
 }
 
-// Multi-User Offline Vault Handler
+// -------------------------------------------------------------
+// MULTI-USER LOCAL DATA VAULT (Isolates per student account)
+// -------------------------------------------------------------
 async function handleOfflineDemoRequest(path, method, bodyRaw) {
   const body = typeof bodyRaw === 'string' ? JSON.parse(bodyRaw) : bodyRaw || {};
   const cleanPath = path.split('?')[0];
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  // Persistent registry of all users
   const usersMap = getStored(STORAGE_KEYS.USERS_MAP, {});
   
-  // Current active user
   let activeUser = getStored(STORAGE_KEYS.USER, {
     id: 'usr_default',
     name: 'Student',
@@ -241,7 +272,6 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
 
   const activeEmailKey = (activeUser?.email || '').toLowerCase().trim();
 
-  // Helper to isolate data per user email
   const getScopedKey = (baseKey) => {
     return activeEmailKey ? `${baseKey}_${activeEmailKey}` : baseKey;
   };
@@ -252,11 +282,11 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
   let categories = getStored(getScopedKey(STORAGE_KEYS.CATEGORIES), []);
   let sessions = getStored(getScopedKey(STORAGE_KEYS.SESSIONS), []);
 
-  const saveTasks = (next) => { tasks = next; setStored(getScopedKey(STORAGE_KEYS.TASKS), next); syncUserDataToCloud(activeEmailKey); };
-  const saveNotes = (next) => { notes = next; setStored(getScopedKey(STORAGE_KEYS.NOTES), next); syncUserDataToCloud(activeEmailKey); };
-  const saveSubjects = (next) => { subjects = next; setStored(getScopedKey(STORAGE_KEYS.SUBJECTS), next); syncUserDataToCloud(activeEmailKey); };
-  const saveCategories = (next) => { categories = next; setStored(getScopedKey(STORAGE_KEYS.CATEGORIES), next); syncUserDataToCloud(activeEmailKey); };
-  const saveSessions = (next) => { sessions = next; setStored(getScopedKey(STORAGE_KEYS.SESSIONS), next); syncUserDataToCloud(activeEmailKey); };
+  const saveTasks = (next) => { tasks = next; setStored(getScopedKey(STORAGE_KEYS.TASKS), next); CloudSync.syncUserData(activeEmailKey); };
+  const saveNotes = (next) => { notes = next; setStored(getScopedKey(STORAGE_KEYS.NOTES), next); CloudSync.syncUserData(activeEmailKey); };
+  const saveSubjects = (next) => { subjects = next; setStored(getScopedKey(STORAGE_KEYS.SUBJECTS), next); CloudSync.syncUserData(activeEmailKey); };
+  const saveCategories = (next) => { categories = next; setStored(getScopedKey(STORAGE_KEYS.CATEGORIES), next); CloudSync.syncUserData(activeEmailKey); };
+  const saveSessions = (next) => { sessions = next; setStored(getScopedKey(STORAGE_KEYS.SESSIONS), next); CloudSync.syncUserData(activeEmailKey); };
 
   // 1. REGISTRATION
   if (cleanPath === '/auth/register') {
@@ -282,22 +312,17 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       createdAt: new Date().toISOString(),
     };
 
-    // Store in global users registry (NEVER overwrite other users)
     usersMap[emailKey] = { ...newUser };
     setStored(STORAGE_KEYS.USERS_MAP, usersMap);
-
-    // Sync to cloud store so laptop sees it immediately
-    pushUserToCloud(newUser);
-
-    // Set as active user
     setStored(STORAGE_KEYS.USER, newUser);
 
-    // Initialize user's separate empty data vaults
     setStored(`${STORAGE_KEYS.TASKS}_${emailKey}`, []);
     setStored(`${STORAGE_KEYS.NOTES}_${emailKey}`, []);
     setStored(`${STORAGE_KEYS.SUBJECTS}_${emailKey}`, []);
     setStored(`${STORAGE_KEYS.CATEGORIES}_${emailKey}`, []);
     setStored(`${STORAGE_KEYS.SESSIONS}_${emailKey}`, []);
+
+    CloudSync.syncUserData(emailKey);
 
     try {
       localStorage.setItem('studysync-user-name', name);
@@ -309,6 +334,7 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       name: newUser.name,
       email: newUser.email,
       profilePictureUrl: newUser.profilePictureUrl,
+      avatarBadge: newUser.avatarBadge,
       role: 'USER',
     };
   }
@@ -347,10 +373,10 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
 
     let existing = usersMap[emailKey];
 
-    // If not found in local browser storage, check Cloud Sync (e.g. registered on mobile)
+    // If not found in local storage, check Cloud Sync
     if (!existing) {
       try {
-        const cloudUsers = await fetchCloudUsers();
+        const cloudUsers = await CloudSync.fetchAllUsers();
         if (cloudUsers && cloudUsers[emailKey]) {
           existing = cloudUsers[emailKey];
           usersMap[emailKey] = existing;
@@ -359,7 +385,7 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       } catch {}
     }
 
-    // Fallback: If unknown email, dynamically register account so mobile and laptop can sign in freely
+    // Dynamic auto-registration fallback for cross-device flexibility
     if (!existing && emailKey) {
       const name = nameFromEmail(emailKey);
       existing = {
@@ -377,7 +403,7 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       };
       usersMap[emailKey] = existing;
       setStored(STORAGE_KEYS.USERS_MAP, usersMap);
-      pushUserToCloud(existing);
+      CloudSync.syncUserData(emailKey);
     }
 
     if (!existing) {
@@ -386,11 +412,10 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       throw err;
     }
 
-    // Set existing user as active user
     setStored(STORAGE_KEYS.USER, existing);
     if (existing.email) {
       try {
-        await pullUserDataFromCloud(existing.email);
+        await CloudSync.pullUserData(existing.email);
       } catch {}
     }
     try {
@@ -422,7 +447,7 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       const em = activeUser.email.toLowerCase();
       usersMap[em] = { ...(usersMap[em] || {}), ...activeUser };
       setStored(STORAGE_KEYS.USERS_MAP, usersMap);
-      syncUserDataToCloud(em);
+      CloudSync.syncUserData(em);
     }
     try {
       if (activeUser.name) localStorage.setItem('studysync-user-name', activeUser.name);
@@ -727,6 +752,9 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
 
   // 12. ADMIN ENDPOINTS (Aggregates all registered users)
   if (cleanPath === '/admin/system/stats') {
+    const cloudStats = await CloudSync.fetchSystemStats();
+    if (cloudStats) return cloudStats;
+
     const allUsersList = Object.values(usersMap).filter((u) => u && u.email);
     let totalAllTasks = 0;
     let totalAllNotes = 0;
@@ -781,7 +809,7 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       localStorage.removeItem(`${STORAGE_KEYS.SESSIONS}_${em}`);
     });
     setStored(STORAGE_KEYS.USERS_MAP, {});
-    deleteCloudUser(null, null, true);
+    CloudSync.deleteUser(null, null, true);
     localStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem('studysync-user-name');
     return null;
@@ -802,7 +830,7 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       localStorage.removeItem(`${STORAGE_KEYS.SUBJECTS}_${targetEmail}`);
       localStorage.removeItem(`${STORAGE_KEYS.CATEGORIES}_${targetEmail}`);
       localStorage.removeItem(`${STORAGE_KEYS.SESSIONS}_${targetEmail}`);
-      deleteCloudUser(uid, targetEmail);
+      CloudSync.deleteUser(uid, targetEmail);
     }
     setStored(STORAGE_KEYS.USERS_MAP, usersMap);
     return null;
