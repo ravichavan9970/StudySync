@@ -78,10 +78,17 @@ export function StudySyncProvider({ children }) {
         request('/notifications'),
       ]);
 
+      const rawNotesList = [
+        ...(activeNotes.status === 'fulfilled' && Array.isArray(activeNotes.value) ? activeNotes.value : []),
+        ...(archivedNotes.status === 'fulfilled' && Array.isArray(archivedNotes.value) ? archivedNotes.value : []),
+      ];
+      // Strictly deduplicate notes by ID
+      const uniqueNotes = Array.from(new Map(rawNotesList.map((n) => [n.id, n])).values());
+
       setData((current) => ({
         ...current,
         tasks: tasks.status === 'fulfilled' ? tasks.value : current.tasks,
-        notes: activeNotes.status === 'fulfilled' && archivedNotes.status === 'fulfilled' ? [...activeNotes.value, ...archivedNotes.value] : current.notes,
+        notes: uniqueNotes,
         subjects: subjects.status === 'fulfilled' && Array.isArray(subjects.value) ? subjects.value : current.subjects,
         categories: categories.status === 'fulfilled' && Array.isArray(categories.value) ? categories.value : current.categories,
         dashboard: dashboard.status === 'fulfilled' ? dashboard.value : current.dashboard,

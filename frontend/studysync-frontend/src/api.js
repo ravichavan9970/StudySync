@@ -594,7 +594,16 @@ async function handleOfflineDemoRequest(path, method, bodyRaw) {
       saveNotes([newNote, ...notes]);
       return newNote;
     }
-    return { content: notes, totalPages: 1 };
+
+    const isArchivedQuery = path.includes('archived=true');
+    const isUnarchivedQuery = path.includes('archived=false');
+    let filteredNotes = notes;
+    if (isArchivedQuery) {
+      filteredNotes = notes.filter((n) => Boolean(n.archived));
+    } else if (isUnarchivedQuery) {
+      filteredNotes = notes.filter((n) => !n.archived);
+    }
+    return { content: filteredNotes, totalPages: 1 };
   }
 
   if (cleanPath.startsWith('/notes/')) {
