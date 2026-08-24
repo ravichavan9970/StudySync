@@ -163,6 +163,21 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
 }
 
+.admin-shell {
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg);
+  display: block;
+}
+
+.admin-shell .main-content,
+.admin-shell .public-content {
+  margin-left: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
 /* Sidebar Styling */
 .sidebar {
   position: fixed;

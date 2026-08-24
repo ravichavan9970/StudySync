@@ -62,14 +62,15 @@ function AppShell() {
     saveCategory,
   } = useStudySync();
 
-  const isPublicOrAuthPage = ['/', '/login', '/register'].includes(location.pathname);
+  const isAdminPage = location.pathname === '/admin';
+  const isPublicOrAuthPage = ['/', '/login', '/register', '/admin'].includes(location.pathname);
   const showSidebar = !isPublicOrAuthPage && Boolean(token);
 
   return (
-    <div className={showSidebar ? 'app-shell' : 'public-shell'}>
+    <div className={isAdminPage ? 'admin-shell' : (showSidebar ? 'app-shell' : 'public-shell')}>
       <ScrollToTop />
 
-      {/* Top Navbar on public pages or when guest */}
+      {/* Top Navbar on public landing page */}
       {(!showSidebar && location.pathname === '/') && (
         <Navbar onOpenAdminModal={() => setAdminLoginModalOpen(true)} />
       )}
