@@ -45,7 +45,7 @@ export default function AdminPortalPage() {
         // Fallback user roster for offline / local display
         const localUser = user || {
           id: 'usr-admin-1',
-          name: 'Chavan Ravindra',
+          name: 'Administrator',
           email: 'admin@studysync.io',
           role: 'ADMIN',
           streakCount: 5,

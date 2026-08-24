@@ -22,13 +22,13 @@ public class ContactController {
     public Map<String, String> sendMessage(@Valid @RequestBody ContactRequest req) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo("ravindrachavan265125@gmail.com");
-            message.setSubject("Portfolio Contact Message from " + req.name());
+            message.setTo("admin@studysync.io");
+            message.setSubject("StudySync Contact Message from " + req.name());
             message.setText("Sender Name: " + req.name() + "\nSender Email: " + req.email() + "\n\nMessage:\n" + req.message());
             mailSender.send(message);
         } catch (Exception ignored) {
             // Non-blocking fallback; returns success status so caller handles gracefully
         }
-        return Map.of("status", "success", "message", "Message received for Ravindra Chavan!");
+        return Map.of("status", "success", "message", "Message received successfully!");
     }
 }

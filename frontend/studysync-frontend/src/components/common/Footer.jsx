@@ -39,7 +39,7 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom">
-        <p>© 2026 StudySync Enterprise. Designed & Engineered with Hindavi Excellence by Chavan Ravindra.</p>
+        <p>© 2026 StudySync Enterprise. Designed & Engineered for ambitious students worldwide.</p>
       </div>
     </footer>
   );

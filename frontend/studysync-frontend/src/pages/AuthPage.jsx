@@ -136,7 +136,7 @@ export default function AuthPage({ initialMode = 'login' }) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    placeholder="e.g. Chavan Ravindra"
+                    placeholder="Enter your name"
                   />
                 </div>
               </div>
