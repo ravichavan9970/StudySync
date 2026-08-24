@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useStudySync } from '../../context/StudySyncContext';
+import Avatar from './Avatar';
 
 function QuickCreateDropdown({ onNewTask, onCreateSubject, onCreateCategory }) {
   const [open, setOpen] = useState(false);
@@ -29,7 +30,7 @@ function QuickCreateDropdown({ onNewTask, onCreateSubject, onCreateCategory }) {
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
-        <span>Create New</span>
+        <span className="hide-on-mobile-text">Create New</span>
         <svg
           width="12"
           height="12"
@@ -98,10 +99,10 @@ function QuickCreateDropdown({ onNewTask, onCreateSubject, onCreateCategory }) {
 export default function TopHeader({ title, subtitle }) {
   const { user } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
-  const { data, showToast, setTaskModal, setSubjectModal, setCategoryModal } = useStudySync();
+  const { data, showToast, setTaskModal, setSubjectModal, setCategoryModal, setProfileModalOpen } = useStudySync();
 
   const formattedDate = new Date().toLocaleDateString(undefined, {
-    weekday: 'long',
+    weekday: 'short',
     month: 'short',
     day: 'numeric'
   }).toUpperCase();
@@ -116,7 +117,7 @@ export default function TopHeader({ title, subtitle }) {
 
   return (
     <header className="topbar">
-      <div>
+      <div className="topbar-info">
         <span className="date-pill">{formattedDate}</span>
         <h1 className="page-title">{title || `Welcome back, ${user?.name || 'Student'} ✨`}</h1>
         {subtitle && <p className="page-subtitle">{subtitle}</p>}
@@ -159,6 +160,16 @@ export default function TopHeader({ title, subtitle }) {
           onCreateSubject={() => setSubjectModal({})}
           onCreateCategory={() => setCategoryModal({})}
         />
+
+        {/* Mobile profile avatar button */}
+        <button
+          type="button"
+          className="mobile-avatar-btn"
+          onClick={() => setProfileModalOpen(true)}
+          title="Profile & Settings"
+        >
+          <Avatar user={user} />
+        </button>
       </div>
     </header>
   );

@@ -7,6 +7,7 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import { Toast } from './components/common/UIElements';
 import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
+import MobileBottomNav from './components/common/MobileBottomNav';
 import { ProtectedRoute, AdminRoute } from './components/common/RouteGuards';
 
 // Pages
@@ -75,6 +76,9 @@ function AppShell() {
 
       {/* Sidebar on workspace pages */}
       {showSidebar && <Sidebar />}
+
+      {/* Mobile Bottom Navigation on workspace pages */}
+      {showSidebar && <MobileBottomNav />}
 
       {/* Main Content Viewport */}
       <main className={showSidebar ? 'main-content' : 'public-content'}>

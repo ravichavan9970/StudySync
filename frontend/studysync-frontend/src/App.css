@@ -2975,3 +2975,230 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 24px;
   line-height: 1.5;
 }
+
+/* ==========================================================================
+   MOBILE BOTTOM NAVIGATION & TOUCH VIEWPORTS
+   ========================================================================== */
+
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  z-index: 150;
+  justify-content: space-around;
+  align-items: center;
+  padding: 4px 6px;
+  padding-bottom: max(4px, env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-nav-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  min-width: 44px;
+}
+
+.mobile-tab-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s ease;
+}
+
+.mobile-nav-tab:hover {
+  color: var(--ink);
+}
+
+.mobile-nav-tab.active {
+  color: var(--primary);
+}
+
+.mobile-nav-tab.active .mobile-tab-icon {
+  transform: translateY(-2px);
+}
+
+.mobile-nav-tab.active .mobile-tab-label {
+  font-weight: 800;
+}
+
+.mobile-avatar-btn {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding: 16px 14px 84px 14px !important;
+  }
+
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+
+  .mobile-avatar-btn {
+    display: flex !important;
+  }
+
+  .hide-on-mobile-text {
+    display: none !important;
+  }
+
+  .topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .topbar-info {
+    flex: 1 1 100%;
+    margin-bottom: 4px;
+  }
+
+  .page-title {
+    font-size: 20px !important;
+    line-height: 1.25;
+  }
+
+  .page-subtitle {
+    font-size: 12.5px !important;
+  }
+
+  .top-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    width: 100%;
+  }
+
+  /* Planner Grid Mobile Transformation */
+  .planner-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .planner-day-card {
+    min-height: auto !important;
+  }
+
+  /* Tasks Row Mobile Wrapping */
+  .task-row {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+    padding: 14px 12px !important;
+  }
+
+  .task-row-actions {
+    width: 100%;
+    justify-content: flex-end;
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+  }
+
+  /* Focus Room Scale */
+  .focus-room-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .timer-ring-wrapper {
+    margin: 16px auto !important;
+  }
+
+  /* Notes Grid */
+  .notes-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Modal Responsive Sheet */
+  .modal-box {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    padding: 20px 16px !important;
+    border-radius: var(--radius-lg) !important;
+    overflow-y: auto !important;
+  }
+
+  /* Dashboard Cards */
+  .hero-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 20px 16px !important;
+    gap: 16px !important;
+  }
+
+  .ring-graphic {
+    display: flex !important;
+    align-self: center;
+  }
+
+  .two-column-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .metrics-row {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .metrics-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .landing-hero {
+    padding: 40px 16px 30px !important;
+  }
+
+  .landing-title {
+    font-size: 32px !important;
+  }
+
+  .hero-trust-badges {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .filter-group {
+    overflow-x: auto;
+    width: 100%;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+
+  .filter-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
