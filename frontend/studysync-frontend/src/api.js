@@ -149,41 +149,56 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
   }
 
   // AUTH
-  if (cleanPath === '/auth/register' || cleanPath === '/auth/login') {
+  if (cleanPath === '/auth/register') {
     const emailKey = (body.email || '').toLowerCase().trim();
-    
-    if (cleanPath === '/auth/register') {
-      const name = body.name ? body.name.trim() : nameFromEmail(emailKey);
-      user.name = name;
-      user.email = emailKey;
-      user.profilePictureUrl = body.profilePictureUrl || '';
-      usersMap[emailKey] = { ...user, name, email: emailKey };
-    } else {
-      // LOGIN
-      if (usersMap[emailKey]) {
-        Object.assign(user, usersMap[emailKey]);
-      } else if (emailKey) {
-        const derivedName = body.name ? body.name.trim() : nameFromEmail(emailKey);
-        user.name = derivedName;
-        user.email = emailKey;
-        user.profilePictureUrl = user.profilePictureUrl || '';
-        usersMap[emailKey] = { ...user, name: derivedName, email: emailKey };
-      }
-    }
-
+    const name = body.name ? body.name.trim() : nameFromEmail(emailKey);
+    const newUser = {
+      id: `usr_${Math.random().toString(36).slice(2, 10)}`,
+      name,
+      email: emailKey,
+      role: 'USER',
+      profilePictureUrl: body.profilePictureUrl || '',
+      avatarBadge: '🎓',
+      darkMode: false,
+      theme: 'violet',
+      streakCount: 0,
+      productivityScore: 0,
+    };
+    Object.assign(user, newUser);
+    usersMap[emailKey] = { ...newUser };
     setStored(STORAGE_KEYS.USER, user);
     setStored(STORAGE_KEYS.USERS_MAP, usersMap);
-    try {
-      if (user.name) localStorage.setItem('studysync-user-name', user.name);
-    } catch {}
 
     return {
-      token: 'demo-offline-token-12345',
+      token: 'auth-token-' + Date.now(),
       userId: user.id,
       name: user.name,
       email: user.email,
       profilePictureUrl: user.profilePictureUrl || '',
       role: 'USER',
+    };
+  }
+
+  if (cleanPath === '/auth/login') {
+    const emailKey = (body.email || '').toLowerCase().trim();
+    const existing = usersMap[emailKey];
+
+    if (!existing) {
+      const err = new Error('Invalid email or password. This user account does not exist or was deleted.');
+      err.status = 401;
+      throw err;
+    }
+
+    Object.assign(user, existing);
+    setStored(STORAGE_KEYS.USER, user);
+
+    return {
+      token: 'auth-token-' + Date.now(),
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      profilePictureUrl: user.profilePictureUrl || '',
+      role: user.role || 'USER',
     };
   }
 

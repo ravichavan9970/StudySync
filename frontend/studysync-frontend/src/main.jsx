@@ -6,7 +6,7 @@ import './App.css';
 
 // Purge any legacy demo/mock data and cached demo images on startup
 try {
-  const CURRENT_BUILD_VERSION = 'v2.2_clean_prod_final';
+  const CURRENT_BUILD_VERSION = 'v2.4_purge_deleted_users';
   if (localStorage.getItem('studysync_app_version') !== CURRENT_BUILD_VERSION) {
     localStorage.removeItem('studysync_demo_notes');
     localStorage.removeItem('studysync_demo_tasks');
