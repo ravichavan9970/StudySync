@@ -33,7 +33,7 @@ function getSavedUserName() {
 // Clean initial data for offline mode
 const INITIAL_DEMO_DATA = {
   user: {
-    id: 'demo-user-id',
+    id: 'usr_8f29c1',
     name: getSavedUserName(),
     email: '',
     role: 'USER',

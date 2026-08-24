@@ -1,6 +1,14 @@
 import React from 'react';
 import Avatar from '../common/Avatar';
 
+function formatUserId(id) {
+  if (!id || id.includes('demo')) {
+    return 'Active Member';
+  }
+  const clean = id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase();
+  return `ID: #${clean}`;
+}
+
 export default function AdminUsersTable({ users = [], onDeleteUser }) {
   return (
     <article className="card-box" style={{ marginTop: '24px' }}>
@@ -38,7 +46,7 @@ export default function AdminUsersTable({ users = [], onDeleteUser }) {
                         <div>
                           <strong>{u.name || 'Student'}</strong>
                           <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
-                            ID: {(u.id || 'usr-local').slice(0, 8)}...
+                            {formatUserId(u.id)}
                           </div>
                         </div>
                       </div>
