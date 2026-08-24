@@ -11,19 +11,19 @@ function formatUserId(id) {
 
 export default function AdminUsersTable({ users = [], onDeleteUser, onDeleteAllUsers }) {
   return (
-    <article className="card-box" style={{ marginTop: '24px' }}>
+    <article className="card-box" style={{ marginTop: '16px' }}>
       <div className="section-header-bar">
         <div>
-          <span className="card-eyebrow">USER ROSTER & AUDIT</span>
-          <h2 className="section-header-title">Registered Student & Admin Accounts</h2>
+          <span className="card-eyebrow">USER MANAGEMENT</span>
+          <h2 className="section-header-title">Registered Accounts</h2>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span className="header-meta-text">{users.length} accounts indexed</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span className="header-meta-text">{users.length} accounts</span>
           {users.length > 0 && onDeleteAllUsers && (
             <button
               type="button"
               className="btn-danger-sm"
-              style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)' }}
+              style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#f87171' }}
               onClick={onDeleteAllUsers}
               title="Delete all user accounts permanently"
             >
@@ -93,7 +93,7 @@ export default function AdminUsersTable({ users = [], onDeleteUser, onDeleteAllU
               })
             ) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: 'var(--muted)' }}>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '36px', color: 'var(--muted)' }}>
                   No registered users found.
                 </td>
               </tr>

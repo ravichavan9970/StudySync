@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import TopHeader from '../components/common/TopHeader';
 import AdminSystemStats from '../components/admin/AdminSystemStats';
 import AdminUsersTable from '../components/admin/AdminUsersTable';
-import AdminDisasterRecovery from '../components/admin/AdminDisasterRecovery';
 import { useAuth } from '../context/AuthContext';
 import { useStudySync } from '../context/StudySyncContext';
 import { api } from '../api';
@@ -21,9 +20,7 @@ export default function AdminPortalPage() {
     totalNotes: 0,
     totalCategories: 0,
     totalSessions: 0,
-    usedMemoryMb: 85,
-    totalMemoryMb: 512,
-    serverStatus: 'ONLINE (RENDER READY)',
+    serverStatus: 'ONLINE',
   });
 
   const [usersList, setUsersList] = useState([]);
@@ -57,14 +54,13 @@ export default function AdminPortalPage() {
   }, [fetchAdminData]);
 
   const handleDeleteUser = async (targetUser) => {
-    if (!window.confirm(`Are you sure you want to delete user account "${targetUser.email}"?`)) return;
+    if (!window.confirm(`Are you sure you want to permanently delete account "${targetUser.email}"?`)) return;
     try {
       await api(`/admin/users/${targetUser.id}`, { method: 'DELETE', token });
       const nextList = usersList.filter((u) => u.id !== targetUser.id && u.email !== targetUser.email);
       setUsersList(nextList);
-      showToast(`Account "${targetUser.email}" removed.`);
+      showToast(`Account "${targetUser.email}" permanently removed.`);
 
-      // If active account was deleted or roster is now empty, reset session and redirect to Home page
       const isSelf = user && (user.id === targetUser.id || user.email?.toLowerCase() === targetUser.email?.toLowerCase());
       if (isSelf || nextList.length === 0) {
         logout();
@@ -80,7 +76,7 @@ export default function AdminPortalPage() {
     try {
       await api('/admin/users/all', { method: 'DELETE', token });
       setUsersList([]);
-      showToast('All users and database records purged successfully.');
+      showToast('All student accounts permanently purged from database.');
       logout();
       navigate('/');
     } catch (err) {
@@ -91,41 +87,27 @@ export default function AdminPortalPage() {
   return (
     <div className="view-container">
       <TopHeader
-        title="🛡️ Enterprise Admin Command Hub"
-        subtitle="Operations auditor, user roster, cloud health metrics, and disaster recovery."
+        title="Admin Hub"
+        subtitle="Manage registered student accounts and system overview."
       />
 
       <div className="page-section">
-        {/* Top Operations Banner */}
-        <div className="admin-hero-banner">
-          <div>
-            <span className="badge-pill light">ENTERPRISE AUDIT & CONTROLS</span>
-            <h2>StudySync System Operations & Cloud Resilience</h2>
-            <p>
-              Java 21 Spring Boot 3 Engine · Render Cloud Web Service · Dual-Cloud Disaster Recovery
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={fetchAdminData}
-            >
-              🔄 Refresh System
-            </button>
-            <Link to="/dashboard" className="btn-outline" style={{ background: 'rgba(255,255,255,0.1)' }}>
-              ← Return to Workspace
-            </Link>
-          </div>
+        {/* Header Action Bar */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+          <button
+            type="button"
+            className="btn-secondary btn-sm"
+            onClick={fetchAdminData}
+            title="Refresh system stats"
+          >
+            🔄 Refresh Data
+          </button>
         </div>
 
-        {/* System Stats Grid */}
-        <AdminSystemStats stats={stats} />
+        {/* Clean Metric Stats Cards */}
+        <AdminSystemStats stats={stats} userCount={usersList.length} />
 
-        {/* Disaster Recovery Engine */}
-        <AdminDisasterRecovery />
-
-        {/* Users Audit Table */}
+        {/* Clean Users Management Table */}
         <AdminUsersTable
           users={usersList}
           onDeleteUser={handleDeleteUser}
