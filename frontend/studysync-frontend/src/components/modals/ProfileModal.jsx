@@ -24,8 +24,8 @@ export default function ProfileModal({ onClose }) {
   const navigate = useNavigate();
 
   const [tab, setTab] = useState('account');
-  const [name, setName] = useState(user?.name || 'Chavan Ravindra');
-  const [email, setEmail] = useState(user?.email || 'ravindrachavan265125@gmail.com');
+  const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [bio, setBio] = useState(user?.bio || '');
   const [dailyTargetHours, setDailyTargetHours] = useState(user?.dailyTargetHours || 4);
   const [theme, setThemeState] = useState(user?.theme || accent || 'violet');

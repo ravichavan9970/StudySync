@@ -70,8 +70,8 @@ export function AuthProvider({ children }) {
         localStorage.setItem('studysync-user-name', res.name);
       } catch {}
     }
-    const displayName = res.name || localStorage.getItem('studysync-user-name') || 'Chavan Ravindra';
-    const picUrl = resolveImageUrl(res.profilePictureUrl || 'https://i.postimg.cc/wMf7YsRW/Ravindra-Chavan.png');
+    const displayName = res.name || localStorage.getItem('studysync-user-name') || 'Student';
+    const picUrl = resolveImageUrl(res.profilePictureUrl || '');
     const newUser = {
       id: res.userId,
       name: displayName,
@@ -103,10 +103,10 @@ export function AuthProvider({ children }) {
     }
     const newUser = {
       id: res.userId,
-      name: name || res.name || 'Chavan Ravindra',
+      name: name || res.name || 'Student',
       email: res.email,
       role: res.role || 'USER',
-      profilePictureUrl: resolveImageUrl(profilePictureUrl || res.profilePictureUrl || 'https://i.postimg.cc/wMf7YsRW/Ravindra-Chavan.png'),
+      profilePictureUrl: resolveImageUrl(profilePictureUrl || res.profilePictureUrl || ''),
       darkMode: false,
       theme: 'violet',
     };
@@ -116,7 +116,7 @@ export function AuthProvider({ children }) {
 
   const updateProfile = async (updates) => {
     const payload = {
-      name: updates.name ?? user?.name ?? 'Chavan Ravindra',
+      name: updates.name ?? user?.name ?? 'Student',
       email: updates.email ?? user?.email ?? '',
       bio: updates.bio ?? user?.bio ?? '',
       dailyTargetHours: updates.dailyTargetHours ?? user?.dailyTargetHours ?? 4,

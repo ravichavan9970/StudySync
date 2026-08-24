@@ -11,86 +11,39 @@ const STORAGE_KEYS = {
   SESSIONS: 'studysync_demo_sessions',
 };
 
-// Helper to convert postimg page links into direct image URLs
+// Helper to resolve and trim image URLs
 export function resolveImageUrl(url) {
   if (!url) return '';
-  const trimmed = url.trim();
-  if (trimmed.includes('postimg.cc/jnfsz2XN') || trimmed === 'https://postimg.cc/jnfsz2XN') {
-    return 'https://i.postimg.cc/wMf7YsRW/Ravindra-Chavan.png';
-  }
-  return trimmed;
+  return url.trim();
 }
 
-// Get current saved user name or default to Chavan Ravindra
+// Get current saved user name or default to Student
 function getSavedUserName() {
   try {
     const saved = localStorage.getItem('studysync-user-name');
     if (saved && saved !== 'Student') return saved;
   } catch {}
-  return 'Chavan Ravindra';
+  return 'Student';
 }
 
-// Initial sample data for offline demo mode
+// Clean initial data for offline mode
 const INITIAL_DEMO_DATA = {
   user: {
     id: 'demo-user-id',
     name: getSavedUserName(),
-    email: 'ravindrachavan265125@gmail.com',
+    email: '',
     role: 'USER',
-    profilePictureUrl: 'https://i.postimg.cc/wMf7YsRW/Ravindra-Chavan.png',
+    profilePictureUrl: '',
     avatarBadge: '🎓',
     darkMode: false,
     theme: 'violet',
     streakCount: 0,
     productivityScore: 0,
   },
-  subjects: [
-    { id: 'sub-1', name: 'Mathematics', code: 'MATH101', color: '#6366f1' },
-    { id: 'sub-2', name: 'Computer Science', code: 'CS102', color: '#10b981' },
-    { id: 'sub-3', name: 'Physics', code: 'PHYS201', color: '#f43f5e' },
-  ],
-  categories: [
-    { id: 'cat-1', name: 'Assignment', icon: '📝', color: '#6366f1' },
-    { id: 'cat-2', name: 'Lab Report', icon: '🧪', color: '#10b981' },
-    { id: 'cat-3', name: 'Exam Prep', icon: '⚡', color: '#f43f5e' },
-    { id: 'cat-4', name: 'Project Work', icon: '🎯', color: '#f59e0b' },
-  ],
-  tasks: [
-    {
-      id: 'task-1',
-      title: 'Review Linear Algebra Chapter 4',
-      description: 'Solve matrix multiplication practice problems',
-      priority: 'HIGH',
-      status: 'PENDING',
-      dueDate: new Date().toISOString().slice(0, 10),
-      categoryId: 'cat-1',
-      categoryName: 'Mathematics',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 'task-2',
-      title: 'Build React Component Tree',
-      description: 'Implement glassmorphic styling and state handlers',
-      priority: 'MEDIUM',
-      status: 'COMPLETED',
-      dueDate: new Date().toISOString().slice(0, 10),
-      categoryId: 'cat-2',
-      categoryName: 'Computer Science',
-      createdAt: new Date().toISOString(),
-    },
-  ],
-  notes: [
-    {
-      id: 'note-1',
-      title: 'Calculus Derivatives Quick Reference',
-      content: 'd/dx(sin x) = cos x\nd/dx(cos x) = -sin x\nd/dx(e^x) = e^x\nChain Rule: d/dx[f(g(x))] = f\'(g(x)) * g\'(x)',
-      pinned: true,
-      archived: false,
-      categoryId: 'cat-1',
-      categoryName: 'Mathematics',
-      updatedAt: new Date().toISOString(),
-    },
-  ],
+  subjects: [],
+  categories: [],
+  tasks: [],
+  notes: [],
   sessions: [],
 };
 
@@ -113,10 +66,7 @@ function setStored(key, val) {
 
 function nameFromEmail(email = '') {
   const handle = email.split('@')[0] || '';
-  if (!handle) return 'Chavan Ravindra';
-  if (handle.toLowerCase().includes('ravindra') || handle.toLowerCase().includes('chavan')) {
-    return 'Chavan Ravindra';
-  }
+  if (!handle) return 'Student';
   const clean = handle.replace(/[0-9_.-]+/g, ' ').trim();
   if (!clean) return handle;
   return clean
@@ -134,8 +84,8 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
   try {
     response = await fetch(`${BASE_URL}${path}`, { ...options, method, headers: requestHeaders, body });
   } catch {
-    // Backend unreachable -> Use Offline Demo Fallback seamlessly!
-    console.warn(`[StudySync API] Backend server at ${BASE_URL} is unreachable. Falling back to local demo mode.`);
+    // Backend unreachable -> Use Offline Fallback seamlessly!
+    console.warn(`[StudySync API] Backend server at ${BASE_URL} is unreachable. Falling back to local offline mode.`);
     return handleOfflineDemoRequest(path, method, body);
   }
 
@@ -155,7 +105,7 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
   return data;
 }
 
-// Handler for offline demo mode when Java Spring Boot server is not running locally
+// Handler for offline mode when Java Spring Boot server is not running locally
 function handleOfflineDemoRequest(path, method, bodyRaw) {
   const body = typeof bodyRaw === 'string' ? JSON.parse(bodyRaw) : bodyRaw || {};
   const cleanPath = path.split('?')[0];
@@ -172,11 +122,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
   }
 
   const user = getStored(STORAGE_KEYS.USER, INITIAL_DEMO_DATA.user);
-  if (!user.profilePictureUrl) {
-    user.profilePictureUrl = 'https://i.postimg.cc/wMf7YsRW/Ravindra-Chavan.png';
-  } else {
-    user.profilePictureUrl = resolveImageUrl(user.profilePictureUrl);
-  }
+  user.profilePictureUrl = resolveImageUrl(user.profilePictureUrl || '');
 
   const usersMap = getStored(STORAGE_KEYS.USERS_MAP, {});
   let tasks = getStored(STORAGE_KEYS.TASKS, INITIAL_DEMO_DATA.tasks);
@@ -185,12 +131,12 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
   let categories = getStored(STORAGE_KEYS.CATEGORIES, INITIAL_DEMO_DATA.categories);
   let sessions = getStored(STORAGE_KEYS.SESSIONS, INITIAL_DEMO_DATA.sessions);
 
-  // Ensure name is never generic 'Student' if user registered or saved a name
+  // Ensure user name from storage
   const savedName = localStorage.getItem('studysync-user-name');
   if (savedName && savedName !== 'Student') {
     user.name = savedName;
-  } else if (!user.name || user.name === 'Student') {
-    user.name = 'Chavan Ravindra';
+  } else if (!user.name) {
+    user.name = 'Student';
   }
 
   // AUTH
@@ -201,11 +147,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
       const name = body.name ? body.name.trim() : nameFromEmail(emailKey);
       user.name = name;
       user.email = emailKey;
-      if (body.profilePictureUrl) {
-        user.profilePictureUrl = body.profilePictureUrl;
-      } else if (!user.profilePictureUrl) {
-        user.profilePictureUrl = 'https://i.postimg.cc/wMf7YsRW/Ravindra-Chavan.png';
-      }
+      user.profilePictureUrl = body.profilePictureUrl || '';
       usersMap[emailKey] = { ...user, name, email: emailKey };
     } else {
       // LOGIN
@@ -215,9 +157,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
         const derivedName = body.name ? body.name.trim() : nameFromEmail(emailKey);
         user.name = derivedName;
         user.email = emailKey;
-        if (!user.profilePictureUrl) {
-          user.profilePictureUrl = 'https://i.postimg.cc/wMf7YsRW/Ravindra-Chavan.png';
-        }
+        user.profilePictureUrl = user.profilePictureUrl || '';
         usersMap[emailKey] = { ...user, name: derivedName, email: emailKey };
       }
     }
@@ -225,7 +165,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     setStored(STORAGE_KEYS.USER, user);
     setStored(STORAGE_KEYS.USERS_MAP, usersMap);
     try {
-      localStorage.setItem('studysync-user-name', user.name);
+      if (user.name) localStorage.setItem('studysync-user-name', user.name);
     } catch {}
 
     return {
@@ -233,7 +173,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
       userId: user.id,
       name: user.name,
       email: user.email,
-      profilePictureUrl: user.profilePictureUrl,
+      profilePictureUrl: user.profilePictureUrl || '',
       role: 'USER',
     };
   }
@@ -244,15 +184,13 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     if (savedName && savedName !== 'Student') {
       user.name = savedName;
     }
-    user.profilePictureUrl = resolveImageUrl(user.profilePictureUrl || 'https://i.postimg.cc/wMf7YsRW/Ravindra-Chavan.png');
+    user.profilePictureUrl = resolveImageUrl(user.profilePictureUrl || '');
     return user;
   }
   
   if (cleanPath === '/profile' && method === 'PUT') {
     Object.assign(user, body);
-    if (user.profilePictureUrl) {
-      user.profilePictureUrl = resolveImageUrl(user.profilePictureUrl);
-    }
+    user.profilePictureUrl = resolveImageUrl(user.profilePictureUrl || '');
     setStored(STORAGE_KEYS.USER, user);
     if (user.email) {
       usersMap[user.email.toLowerCase()] = { ...user };
@@ -446,14 +384,13 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     }
   }
 
-  // Helper to calculate total focus minutes from actual completed sessions
+  // Focus and task calculations
   const realFocusMinutes = sessions
     .filter((s) => s.completed !== false)
     .reduce((acc, s) => acc + Number(s.completedMinutes || s.durationMinutes || s.plannedMinutes || 0), 0);
 
   const completedTasksCount = tasks.filter((t) => t.status === 'COMPLETED').length;
   
-  // Real Productivity Score: 0 if no activity, max 100
   const realScore = (completedTasksCount === 0 && realFocusMinutes === 0) 
     ? 0 
     : Math.min(100, (completedTasksCount * 20) + Math.round(realFocusMinutes / 2));
@@ -477,7 +414,6 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     const days = [];
     const now = new Date();
     
-    // Build real day-by-day trend for past 7 days
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
@@ -506,7 +442,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     };
   }
 
-  // NOTIFICATIONS (Dynamic based on active tasks)
+  // NOTIFICATIONS
   if (cleanPath === '/notifications') {
     const notifs = [];
     const pendingTasks = tasks.filter((t) => t.status !== 'COMPLETED');
@@ -565,7 +501,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     return updated;
   }
 
-  // ADMIN ENDPOINTS (OFFLINE / FALLBACK)
+  // ADMIN ENDPOINTS
   if (cleanPath === '/admin/verify-passcode') {
     const entered = body.passcode || '';
     if (entered === 'StudySync#*&Master2026!Admin') {
@@ -600,7 +536,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
         name: u.name || 'Student',
         email: u.email || 'student@example.com',
         role: u.role || 'USER',
-        profilePictureUrl: u.profilePictureUrl || 'https://i.postimg.cc/wMf7YsRW/Ravindra-Chavan.png',
+        profilePictureUrl: u.profilePictureUrl || '',
         streakCount: u.streakCount || 0,
         createdAt: u.createdAt || new Date().toISOString(),
       })),
