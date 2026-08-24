@@ -1,0 +1,32 @@
+# Node & Frontend
+node_modules/
+dist/
+.vite/
+*.local
+
+# Java & Backend
+target/
+*.jar
+*.war
+*.class
+backend/target/
+backend/data/*.db
+backend/data/*.mv.db
+backend/data/*.trace.db
+backend/data/*.lock.db
+data/*.db
+data/*.mv.db
+data/*.trace.db
+data/*.lock.db
+
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*.log
+
+# Uploads
+uploads/
+backend/uploads/

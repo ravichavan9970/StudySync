@@ -1,0 +1,19 @@
+{
+  "info": { "name": "StudySync API", "description": "JWT-secured REST API collection. Set baseUrl and run Register or Login first.", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "variable": [{"key":"baseUrl","value":"http://localhost:8080/api/v1"},{"key":"token","value":""},{"key":"taskId","value":""}],
+  "item": [
+    {"name":"Authentication","item":[
+      {"name":"Register","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/auth/register","body":{"mode":"raw","raw":"{\n  \"name\": \"Ravin\",\n  \"email\": \"ravin@example.com\",\n  \"password\": \"Password123!\"\n}"}}},
+      {"name":"Login","event":[{"listen":"test","script":{"exec":["pm.test('login succeeds', () => pm.response.to.have.status(200));","pm.collectionVariables.set('token', pm.response.json().token);"]}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/auth/login","body":{"mode":"raw","raw":"{\n  \"email\": \"ravin@example.com\",\n  \"password\": \"Password123!\"\n}"}}},
+      {"name":"Forgot password","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/auth/forgot-password","body":{"mode":"raw","raw":"{\"email\":\"ravin@example.com\"}"}}}
+    ]},
+    {"name":"Dashboard","item":[{"name":"Get dashboard","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/dashboard"}},{"name":"Weekly statistics","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/statistics?range=weekly"}}]},
+    {"name":"Tasks","item":[
+      {"name":"Create task","event":[{"listen":"test","script":{"exec":["pm.collectionVariables.set('taskId', pm.response.json().id);"]}}],"request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/tasks","body":{"mode":"raw","raw":"{\"title\":\"Finish chemistry report\",\"priority\":\"HIGH\",\"dueDate\":\"2026-07-20\"}"}}},
+      {"name":"List tasks","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/tasks?status=PENDING&page=0&size=20&sort=dueDate"}},
+      {"name":"Complete task","request":{"method":"PATCH","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/tasks/{{taskId}}/complete?completed=true"}}
+    ]},
+    {"name":"Notes","item":[{"name":"Create note","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/notes","body":{"mode":"raw","raw":"{\"title\":\"Calculus revision\",\"content\":\"Review integration techniques.\",\"pinned\":true}"}}},{"name":"Search notes","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/notes?q=Calculus"}}]},
+    {"name":"Focus","item":[{"name":"Start study session","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/study-sessions","body":{"mode":"raw","raw":"{\"subject\":\"Mathematics\",\"plannedMinutes\":25,\"completedMinutes\":0,\"completed\":false}"}}}]}
+  ]
+}

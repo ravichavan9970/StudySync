@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: studysync-api
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/actuator/health
+    disk:
+      name: studysync-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:h2:file:/app/data/studysyncdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;AUTO_SERVER=TRUE
+      - key: SPRING_DATASOURCE_USERNAME
+        value: sa
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: StudySync#*&Master2026!Admin
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_PASSCODE
+        value: StudySync#*&Master2026!Admin
+      - key: ADMIN_EMAIL
+        value: admin@studysync.io
+      - key: ADMIN_PASSWORD
+        value: StudySync#*&Master2026!Admin
+      - key: FRONTEND_URL
+        value: https://studysync-app.vercel.app

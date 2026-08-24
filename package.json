@@ -1,0 +1,13 @@
+{
+  "name": "studysync-enterprise-suite",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && mvn spring-boot:run",
+    "dev:frontend": "cd frontend/studysync-frontend && npm run dev",
+    "build:backend": "cd backend && mvn clean package -DskipTests",
+    "build:frontend": "cd frontend/studysync-frontend && npm run build",
+    "build:all": "npm run build:backend && npm run build:frontend",
+    "test:backend": "cd backend && mvn test"
+  }
+}
