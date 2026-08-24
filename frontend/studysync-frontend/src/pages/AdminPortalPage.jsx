@@ -5,7 +5,7 @@ import AdminUsersTable from '../components/admin/AdminUsersTable';
 import { useAuth } from '../context/AuthContext';
 import { useStudySync } from '../context/StudySyncContext';
 import { useTheme } from '../context/ThemeContext';
-import { api } from '../api';
+import { api, fetchCloudUsers, deleteCloudUser } from '../api';
 
 export default function AdminPortalPage() {
   const { token, user, logout } = useAuth();
@@ -37,7 +37,7 @@ export default function AdminPortalPage() {
         setStats((prev) => ({ ...prev, ...sysStats }));
       }
 
-      // 2. Fetch users list
+      // 2. Fetch users list from backend & local
       const usersData = await api('/admin/users?page=0&size=100', { token }).catch(() => null);
       let combined = [];
       if (usersData && Array.isArray(usersData.content)) {
@@ -52,6 +52,19 @@ export default function AdminPortalPage() {
           }
         });
       } catch {}
+
+      // 3. Fetch real-time cloud registry from mobile and all devices
+      try {
+        const cloudUsers = await fetchCloudUsers();
+        if (cloudUsers && typeof cloudUsers === 'object') {
+          Object.values(cloudUsers).forEach((cu) => {
+            if (cu && cu.email && !combined.some((u) => u.email?.toLowerCase() === cu.email?.toLowerCase())) {
+              combined.push(cu);
+            }
+          });
+        }
+      } catch {}
+
       setUsersList(combined);
     } catch (err) {
       showToast(`Admin sync notice: ${err.message}`);
@@ -68,6 +81,7 @@ export default function AdminPortalPage() {
     if (!window.confirm(`Are you sure you want to permanently delete account "${targetUser.email}" from the database?`)) return;
     try {
       await api(`/admin/users/${targetUser.id}`, { method: 'DELETE', token });
+      await deleteCloudUser(targetUser.id, targetUser.email);
       const nextList = usersList.filter((u) => u.id !== targetUser.id && u.email !== targetUser.email);
       setUsersList(nextList);
       showToast(`Account "${targetUser.email}" permanently removed.`);
@@ -86,6 +100,7 @@ export default function AdminPortalPage() {
     if (!window.confirm('⚠️ DANGER: Are you sure you want to permanently delete ALL student accounts and reset the database?')) return;
     try {
       await api('/admin/users/all', { method: 'DELETE', token });
+      await deleteCloudUser(null, null, true);
       setUsersList([]);
       showToast('All student accounts permanently purged from database.');
       logout();

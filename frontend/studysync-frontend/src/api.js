@@ -43,6 +43,41 @@ function setStored(key, val) {
   }
 }
 
+// Sync with Edge Cloud Store (reconciles mobile and laptop in real-time)
+export async function pushUserToCloud(userObj) {
+  try {
+    if (typeof window !== 'undefined' && userObj?.email) {
+      await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userObj),
+      }).catch(() => {});
+    }
+  } catch {}
+}
+
+export async function fetchCloudUsers() {
+  try {
+    if (typeof window !== 'undefined') {
+      const res = await fetch('/api/sync').catch(() => null);
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null);
+        return data?.users || {};
+      }
+    }
+  } catch {}
+  return {};
+}
+
+export async function deleteCloudUser(id, email, all = false) {
+  try {
+    if (typeof window !== 'undefined') {
+      const query = all ? 'all=true' : (id ? `id=${id}` : `email=${email}`);
+      await fetch(`/api/sync?${query}`, { method: 'DELETE' }).catch(() => {});
+    }
+  } catch {}
+}
+
 function nameFromEmail(email = '') {
   const handle = email.split('@')[0] || '';
   if (!handle) return 'Student';
@@ -70,17 +105,16 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
   while (attempts < maxAttempts) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
       response = await fetch(`${BASE_URL}${path}`, { ...options, signal: controller.signal, method, headers: requestHeaders, body });
       clearTimeout(timeoutId);
       break;
     } catch {
       attempts++;
       if (attempts >= maxAttempts) {
-        console.warn(`[StudySync API] Backend server at ${BASE_URL} is unreachable. Falling back to local multi-user vault.`);
         return handleOfflineDemoRequest(path, method, body);
       }
-      await new Promise((r) => setTimeout(r, 1200));
+      await new Promise((r) => setTimeout(r, 800));
     }
   }
 
@@ -173,6 +207,9 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
     // Store in global users registry (NEVER overwrite other users)
     usersMap[emailKey] = { ...newUser };
     setStored(STORAGE_KEYS.USERS_MAP, usersMap);
+
+    // Sync to cloud store so laptop sees it immediately
+    pushUserToCloud(newUser);
 
     // Set as active user
     setStored(STORAGE_KEYS.USER, newUser);
@@ -267,6 +304,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
       const em = activeUser.email.toLowerCase();
       usersMap[em] = { ...(usersMap[em] || {}), ...activeUser };
       setStored(STORAGE_KEYS.USERS_MAP, usersMap);
+      pushUserToCloud(activeUser);
     }
     try {
       if (activeUser.name) localStorage.setItem('studysync-user-name', activeUser.name);
@@ -625,6 +663,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
       localStorage.removeItem(`${STORAGE_KEYS.SESSIONS}_${em}`);
     });
     setStored(STORAGE_KEYS.USERS_MAP, {});
+    deleteCloudUser(null, null, true);
     localStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem('studysync-user-name');
     return null;
@@ -645,6 +684,7 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
       localStorage.removeItem(`${STORAGE_KEYS.SUBJECTS}_${targetEmail}`);
       localStorage.removeItem(`${STORAGE_KEYS.CATEGORIES}_${targetEmail}`);
       localStorage.removeItem(`${STORAGE_KEYS.SESSIONS}_${targetEmail}`);
+      deleteCloudUser(uid, targetEmail);
     }
     setStored(STORAGE_KEYS.USERS_MAP, usersMap);
     return null;
