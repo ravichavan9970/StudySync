@@ -18,12 +18,8 @@ const STORAGE_KEYS = {
 
 // Helper to resolve and trim image URLs
 export function resolveImageUrl(url) {
-  if (!url) return '';
-  const trimmed = url.trim();
-  if (trimmed.includes('postimg.cc') || trimmed.includes('Ravindra-Chavan') || trimmed.includes('jnfsz2XN')) {
-    return '';
-  }
-  return trimmed;
+  if (!url || typeof url !== 'string') return '';
+  return url.trim();
 }
 
 function getStored(key, fallback) {

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { api, session, resolveImageUrl } from '../api';
+import { api, session, resolveImageUrl, pullUserDataFromCloud } from '../api';
 
 const AuthContext = createContext();
 
@@ -35,7 +35,18 @@ export function AuthProvider({ children }) {
     }
     try {
       setLoading(true);
-      const userData = await api('/users/me', { token: activeToken });
+      let userData = await api('/users/me', { token: activeToken });
+
+      // Pull latest profile photo and settings from Cloud Sync across devices
+      if (userData?.email) {
+        try {
+          const cloudData = await pullUserDataFromCloud(userData.email);
+          if (cloudData) {
+            userData = { ...userData, ...cloudData };
+          }
+        } catch {}
+      }
+
       if (userData) {
         userData.profilePictureUrl = resolveImageUrl(userData.profilePictureUrl);
         const savedName = localStorage.getItem('studysync-user-name');

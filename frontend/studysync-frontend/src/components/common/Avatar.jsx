@@ -1,18 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { resolveImageUrl } from '../../api';
 
 export default function Avatar({ user, size = 'default' }) {
+  const [imgError, setImgError] = useState(false);
   const imgUrl = resolveImageUrl(user?.profilePictureUrl);
 
-  if (imgUrl) {
+  useEffect(() => {
+    setImgError(false);
+  }, [imgUrl]);
+
+  if (imgUrl && !imgError) {
     return (
       <img
         className={`avatar-img ${size === 'large' ? 'large' : ''}`}
         src={imgUrl}
         alt={user?.name || 'Profile'}
-        onError={(e) => {
-          e.target.style.display = 'none';
-        }}
+        onError={() => setImgError(true)}
       />
     );
   }

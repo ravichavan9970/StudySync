@@ -34,8 +34,19 @@ export default function ProfileModal({ onClose }) {
   const [cropperSrc, setCropperSrc] = useState(null);
   const [defaultFocusMinutes, setDefaultFocusMinutes] = useState(user?.defaultFocusMinutes || 25);
   const [enableReminders, setEnableReminders] = useState(user?.enableReminders ?? true);
-  const [soundEnabled, setSoundEnabled] = useState(user?.soundEnabled ?? true);
   const [saving, setSaving] = useState(false);
+
+  React.useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setEmail(user.email || '');
+      setBio(user.bio || '');
+      setDailyTargetHours(user.dailyTargetHours || 4);
+      setThemeState(user.theme || accent || 'violet');
+      setAvatarBadge(user.avatarBadge || '🎓');
+      setProfilePictureUrl(user.profilePictureUrl || '');
+    }
+  }, [user, accent]);
 
   const handleModalDevicePhoto = (e) => {
     const file = e.target.files?.[0];
@@ -321,9 +332,13 @@ export default function ProfileModal({ onClose }) {
       {cropperSrc && (
         <ImageCropperModal
           imageSrc={cropperSrc}
-          onCrop={(croppedData) => {
+          onCrop={async (croppedData) => {
             setProfilePictureUrl(croppedData);
             setCropperSrc(null);
+            try {
+              await updateProfile({ profilePictureUrl: croppedData });
+              showToast('Profile photo updated & synced across devices! 📸✨');
+            } catch {}
           }}
           onCancel={() => setCropperSrc(null)}
         />
