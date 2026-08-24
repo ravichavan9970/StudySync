@@ -135,13 +135,13 @@ export default function LandingPage({ onOpenAdminModal }) {
           </div>
 
           <div className="feature-card">
-            <div className="feature-card-icon">🛡️</div>
-            <h3>Disaster Recovery & Admin</h3>
+            <div className="feature-card-icon">☁️</div>
+            <h3>Cloud Sync & Data Resilience</h3>
             <p>
-              Dual-storage auto-reconciliation, offline browser vaults, and 1-click JSON snapshot exports for data safety.
+              Automatic cross-device cloud synchronization, persistent storage, and offline vaults for continuous learning.
             </p>
-            <Link to="/admin" className="feature-link">
-              Admin Command Hub →
+            <Link to={token ? "/dashboard" : "/login"} className="feature-link">
+              Explore Workspace →
             </Link>
           </div>
         </div>
@@ -188,9 +188,11 @@ export default function LandingPage({ onOpenAdminModal }) {
           <Link to={token ? "/dashboard" : "/register"} className="btn-primary large">
             {token ? "Open Workspace →" : "Get Started Free 🚀"}
           </Link>
-          <Link to="/admin" className="btn-outline large">
-            Admin Hub 🛡️
-          </Link>
+          {!token && (
+            <Link to="/login" className="btn-outline large">
+              Sign In to Workspace
+            </Link>
+          )}
         </div>
       </section>
 

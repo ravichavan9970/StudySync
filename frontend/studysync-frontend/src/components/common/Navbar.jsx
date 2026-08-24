@@ -51,9 +51,11 @@ export default function Navbar({ onOpenAdminModal }) {
               <a href="/#reviews" className="nav-link">Reviews</a>
             </>
           )}
-          <NavLink to="/admin" className={({ isActive }) => `nav-link admin-nav-link ${isActive ? 'active' : ''}`}>
-            🛡️ Admin
-          </NavLink>
+          {(user?.role === 'ADMIN') && (
+            <NavLink to="/admin" className={({ isActive }) => `nav-link admin-nav-link ${isActive ? 'active' : ''}`}>
+              🛡️ Admin
+            </NavLink>
+          )}
         </nav>
 
         {/* Right Actions */}
@@ -126,7 +128,9 @@ export default function Navbar({ onOpenAdminModal }) {
               <Link to="/planner" onClick={() => setMobileMenuOpen(false)}>Planner</Link>
               <Link to="/focus" onClick={() => setMobileMenuOpen(false)}>Focus Room</Link>
               <Link to="/analytics" onClick={() => setMobileMenuOpen(false)}>Analytics</Link>
-              <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>Admin Portal</Link>
+              {user?.role === 'ADMIN' && (
+                <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>Admin Portal</Link>
+              )}
               <button
                 className="btn-link text-danger"
                 onClick={() => {
@@ -141,7 +145,6 @@ export default function Navbar({ onOpenAdminModal }) {
             <>
               <a href="/#features" onClick={() => setMobileMenuOpen(false)}>Features</a>
               <a href="/#methods" onClick={() => setMobileMenuOpen(false)}>Methodology</a>
-              <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>Admin Portal</Link>
               <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
               <Link to="/register" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
             </>
