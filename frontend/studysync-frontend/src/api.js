@@ -88,9 +88,10 @@ export const CloudSync = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
+          keepalive: true,
         }).catch(() => {});
       } catch {}
-    }, 200);
+    }, 20);
   },
 
   async pullUserData(emailKey) {
@@ -180,13 +181,12 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
 
   let response;
   let attempts = 0;
-  const isCriticalCloudOp = path.startsWith('/auth/register') || path.startsWith('/auth/login') || path.startsWith('/admin') || path.startsWith('/users');
-  const maxAttempts = isCriticalCloudOp ? 2 : 1;
+  const maxAttempts = 1;
 
   while (attempts < maxAttempts) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const timeoutId = setTimeout(() => controller.abort(), 2200);
       response = await fetch(`${BASE_URL}${path}`, { ...options, signal: controller.signal, method, headers: requestHeaders, body });
       clearTimeout(timeoutId);
       break;
@@ -195,7 +195,6 @@ export async function api(path, { token, body, headers = {}, method = 'GET', ...
       if (attempts >= maxAttempts) {
         return handleOfflineDemoRequest(path, method, body);
       }
-      await new Promise((r) => setTimeout(r, 600));
     }
   }
 

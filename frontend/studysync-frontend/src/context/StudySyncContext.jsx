@@ -116,9 +116,17 @@ export function StudySyncProvider({ children }) {
       window.addEventListener('focus', handleFocus);
       document.addEventListener('visibilitychange', handleFocus);
 
+      // Ultra-fast cross-device real-time background sync pulse (every 3.5 seconds)
+      const syncInterval = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          reloadData();
+        }
+      }, 3500);
+
       return () => {
         window.removeEventListener('focus', handleFocus);
         document.removeEventListener('visibilitychange', handleFocus);
+        clearInterval(syncInterval);
       };
     } else {
       setData({
