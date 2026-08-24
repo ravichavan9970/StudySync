@@ -41,6 +41,15 @@ function ScrollToTop() {
 function AppShell() {
   const location = useLocation();
   const { token } = useAuth();
+
+  useEffect(() => {
+    // Silently pre-warm Render Cloud API instance
+    fetch('https://studysync-api.onrender.com/api/v1/admin/verify-passcode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: 'ping' }),
+    }).catch(() => {});
+  }, []);
   const {
     data,
     toastMessage,

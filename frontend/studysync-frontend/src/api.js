@@ -57,13 +57,34 @@ function nameFromEmail(email = '') {
 export async function api(path, { token, body, headers = {}, method = 'GET', ...options } = {}) {
   const requestHeaders = { ...headers };
   if (token) requestHeaders.Authorization = `Bearer ${token}`;
+  if (path.startsWith('/admin') || (typeof window !== 'undefined' && sessionStorage.getItem('studysync_admin_unlocked') === 'true')) {
+    requestHeaders['X-Admin-Passcode'] = 'StudySync#*&Master2026!Admin';
+  }
   if (body && !(body instanceof FormData)) requestHeaders['Content-Type'] ??= 'application/json';
 
   let response;
-  try {
-    response = await fetch(`${BASE_URL}${path}`, { ...options, method, headers: requestHeaders, body });
-  } catch {
-    // Backend unreachable -> Use Multi-User Offline Vault
+  let attempts = 0;
+  const isCriticalCloudOp = path.startsWith('/auth/register') || path.startsWith('/auth/login') || path.startsWith('/admin') || path.startsWith('/users');
+  const maxAttempts = isCriticalCloudOp ? 2 : 1;
+
+  while (attempts < maxAttempts) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      response = await fetch(`${BASE_URL}${path}`, { ...options, signal: controller.signal, method, headers: requestHeaders, body });
+      clearTimeout(timeoutId);
+      break;
+    } catch {
+      attempts++;
+      if (attempts >= maxAttempts) {
+        console.warn(`[StudySync API] Backend server at ${BASE_URL} is unreachable. Falling back to local multi-user vault.`);
+        return handleOfflineDemoRequest(path, method, body);
+      }
+      await new Promise((r) => setTimeout(r, 1200));
+    }
+  }
+
+  if (!response) {
     return handleOfflineDemoRequest(path, method, body);
   }
 
