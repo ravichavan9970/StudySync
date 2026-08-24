@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "cd frontend/studysync-frontend && npm install && npm run build",
     "dev:backend": "cd backend && mvn spring-boot:run",
     "dev:frontend": "cd frontend/studysync-frontend && npm run dev",
     "build:backend": "cd backend && mvn clean package -DskipTests",

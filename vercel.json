@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "buildCommand": "cd frontend/studysync-frontend && npm install && npm run build",
+  "outputDirectory": "frontend/studysync-frontend/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
