@@ -39,19 +39,10 @@ export default function AdminPortalPage() {
 
       // 2. Fetch users list
       const usersData = await api('/admin/users?page=0&size=50', { token }).catch(() => null);
-      if (usersData && usersData.content) {
+      if (usersData && Array.isArray(usersData.content)) {
         setUsersList(usersData.content);
       } else {
-        // Fallback user roster for offline / local display
-        const localUser = user || {
-          id: 'usr-admin-1',
-          name: 'Administrator',
-          email: 'admin@studysync.io',
-          role: 'ADMIN',
-          streakCount: 5,
-          createdAt: new Date().toISOString(),
-        };
-        setUsersList([localUser]);
+        setUsersList(user ? [user] : []);
       }
     } catch (err) {
       showToast(`Admin sync notice: ${err.message}`);

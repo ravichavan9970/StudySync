@@ -533,12 +533,12 @@ function handleOfflineDemoRequest(path, method, bodyRaw) {
   }
 
   if (cleanPath === '/admin/users') {
-    const allUsers = Object.values(usersMap).length > 0 ? Object.values(usersMap) : [user];
+    const allUsers = Object.values(usersMap).filter((u) => u && u.email);
     return {
       content: allUsers.map((u, i) => ({
         id: u.id || `usr-${i + 1}`,
-        name: u.name || 'Student',
-        email: u.email || 'student@example.com',
+        name: u.name || 'User',
+        email: u.email,
         role: u.role || 'USER',
         profilePictureUrl: u.profilePictureUrl || '',
         streakCount: u.streakCount || 0,
