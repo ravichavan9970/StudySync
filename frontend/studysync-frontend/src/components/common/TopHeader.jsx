@@ -22,26 +22,12 @@ function QuickCreateDropdown({ onNewTask, onCreateSubject, onCreateCategory }) {
     <div className="quick-create-dropdown" ref={dropdownRef}>
       <button
         type="button"
-        className="btn-primary"
+        className="btn-primary create-btn-compact"
         onClick={() => setOpen(!open)}
         title="Quick Create Menu"
       >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-        <span className="hide-on-mobile-text">Create New</span>
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          style={{ transition: 'transform 0.2s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
+        <span style={{ fontSize: '16px', fontWeight: '800', lineHeight: 1 }}>+</span>
+        <span className="hide-on-mobile-text">New</span>
       </button>
 
       {open && (
@@ -57,7 +43,7 @@ function QuickCreateDropdown({ onNewTask, onCreateSubject, onCreateCategory }) {
             <span className="menu-item-icon">📝</span>
             <div className="menu-item-text">
               <strong>New Task</strong>
-              <small>Add a target study item or goal</small>
+              <small>Add a target study item</small>
             </div>
           </button>
 
@@ -72,7 +58,7 @@ function QuickCreateDropdown({ onNewTask, onCreateSubject, onCreateCategory }) {
             <span className="menu-item-icon">📚</span>
             <div className="menu-item-text">
               <strong>Create Subject</strong>
-              <small>Add a new course or subject</small>
+              <small>Add course or syllabus</small>
             </div>
           </button>
 
@@ -87,7 +73,7 @@ function QuickCreateDropdown({ onNewTask, onCreateSubject, onCreateCategory }) {
             <span className="menu-item-icon">🏷️</span>
             <div className="menu-item-text">
               <strong>Create Category</strong>
-              <small>Add a new category or tag</small>
+              <small>Add tag or section</small>
             </div>
           </button>
         </div>
@@ -117,59 +103,50 @@ export default function TopHeader({ title, subtitle }) {
 
   return (
     <header className="topbar">
-      <div className="topbar-info">
-        <span className="date-pill">{formattedDate}</span>
-        <h1 className="page-title">{title || `Welcome back, ${user?.name || 'Student'} ✨`}</h1>
-        {subtitle && <p className="page-subtitle">{subtitle}</p>}
-      </div>
+      <div className="topbar-header-row">
+        <div className="topbar-info">
+          <span className="date-pill">{formattedDate}</span>
+          <h1 className="page-title">{title || `Welcome back, ${user?.name || 'Student'} ✨`}</h1>
+          {subtitle && <p className="page-subtitle">{subtitle}</p>}
+        </div>
 
-      <div className="top-actions">
-        <button
-          type="button"
-          className="icon-btn theme-toggle"
-          title="Toggle theme"
-          onClick={toggleDarkMode}
-        >
-          {darkMode ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-            </svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-            </svg>
-          )}
-        </button>
+        <div className="top-actions">
+          <button
+            type="button"
+            className="icon-btn theme-toggle"
+            title="Toggle dark mode"
+            onClick={toggleDarkMode}
+          >
+            {darkMode ? '☀️' : '🌙'}
+          </button>
 
-        <button
-          type="button"
-          className="icon-btn notif-btn"
-          title="Notifications"
-          onClick={handleNotificationsClick}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
-          </svg>
-          {data.notifications && data.notifications.length > 0 && (
-            <span className="notif-badge">{data.notifications.length}</span>
-          )}
-        </button>
+          <button
+            type="button"
+            className="icon-btn notif-btn"
+            title="Notifications"
+            onClick={handleNotificationsClick}
+          >
+            🔔
+            {data.notifications && data.notifications.length > 0 && (
+              <span className="notif-badge">{data.notifications.length}</span>
+            )}
+          </button>
 
-        <QuickCreateDropdown
-          onNewTask={() => setTaskModal({})}
-          onCreateSubject={() => setSubjectModal({})}
-          onCreateCategory={() => setCategoryModal({})}
-        />
+          <QuickCreateDropdown
+            onNewTask={() => setTaskModal({})}
+            onCreateSubject={() => setSubjectModal({})}
+            onCreateCategory={() => setCategoryModal({})}
+          />
 
-        {/* Mobile profile avatar button */}
-        <button
-          type="button"
-          className="mobile-avatar-btn"
-          onClick={() => setProfileModalOpen(true)}
-          title="Profile & Settings"
-        >
-          <Avatar user={user} />
-        </button>
+          <button
+            type="button"
+            className="mobile-avatar-btn"
+            onClick={() => setProfileModalOpen(true)}
+            title="Profile & Settings"
+          >
+            <Avatar user={user} />
+          </button>
+        </div>
       </div>
     </header>
   );

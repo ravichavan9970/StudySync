@@ -5,10 +5,12 @@ export default function DailyTargetCard({ completed = 0, total = 0, progress = 0
   const dashStrokeOffset = dashStrokeDash - (dashStrokeDash * progress) / 100;
 
   return (
-    <section className="hero-banner">
+    <section className="hero-banner daily-target-hero">
       <div className="hero-content">
-        <span className="badge-pill light">DAILY TARGET</span>
-        <h2>
+        <div className="hero-top-badge-row">
+          <span className="badge-pill light">DAILY TARGET</span>
+        </div>
+        <h2 className="hero-title-text">
           <b>{completed}</b> of <b>{total || 1}</b> tasks completed today
         </h2>
         <div className="progress-bar-container">
@@ -18,18 +20,18 @@ export default function DailyTargetCard({ completed = 0, total = 0, progress = 0
           {progress === 100
             ? '🎉 All done! Outstanding discipline today!'
             : progress > 50
-            ? 'Great momentum, you are more than halfway there!'
+            ? 'Great momentum, more than halfway there!'
             : 'Start small, build your daily study streak.'}
         </p>
       </div>
 
       <div className="ring-graphic">
-        <svg width="110" height="110" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255, 255, 255, 0.15)" strokeWidth="8" />
+        <svg width="90" height="90" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255, 255, 255, 0.2)" strokeWidth="8" />
           <circle
             cx="50"
             cy="50"
-            r="45"
+            r="42"
             fill="none"
             stroke="#ffffff"
             strokeWidth="8"
@@ -42,7 +44,7 @@ export default function DailyTargetCard({ completed = 0, total = 0, progress = 0
         </svg>
         <div className="ring-text">
           <strong>{progress}%</strong>
-          <small>complete</small>
+          <small>done</small>
         </div>
       </div>
     </section>
