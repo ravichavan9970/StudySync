@@ -265,17 +265,9 @@ export default function ProfileModal({ onClose }) {
 
 
           {/* Action Row */}
-          <div className="modal-footer-actions">
-            <button className="btn-primary flex-1" type="submit" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Settings ✨'}
-            </button>
-            <button
-              type="button"
-              className="btn-danger-outline"
-              onClick={handleLogout}
-              title="Logout"
-            >
-              🚪 Logout
+          <div className="modal-footer-actions" style={{ marginTop: '16px' }}>
+            <button className="btn-primary full-width" type="submit" disabled={saving}>
+              {saving ? 'Saving Changes...' : 'Save Changes ✨'}
             </button>
           </div>
         </form>
